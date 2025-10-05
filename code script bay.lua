@@ -480,7 +480,7 @@ local infoGui = Instance.new("ScreenGui")
 local infoFrame = Instance.new("Frame")
 local infoText = Instance.new("TextLabel")
 
-infoGui.Name = "ThongTinCaNhan"
+infoGui.Name = "ThongTinAdmin"
 infoGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 infoGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 infoGui.ResetOnSpawn = false
@@ -500,10 +500,11 @@ infoText.BackgroundTransparency = 1
 infoText.Font = Enum.Font.SourceSansBold
 infoText.TextColor3 = Color3.fromRGB(0, 0, 0)
 infoText.TextScaled = true
-infoText.Text = "THÔNG TIN CÁ NHÂN\n\nTác giả: MinhFansub\nPhiên bản: 1.0\nLiên hệ: https://webminhfansub.github.io/"
+infoText.Text = "THÔNG TIN \n\nTác giả: MinhFansub\nPhiên bản: 1.0\nLiên hệ: https://www.facebook.com/minh.fansub"
 infoText.TextWrapped = true
 
 -- Tự động ẩn bảng sau 10 giây
 delay(10, function()
 	infoGui:Destroy()
 end)
+
