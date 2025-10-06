@@ -1,5 +1,5 @@
 -- Script bay with fixed key system + Nút dẫn đến trang web
-local FIXED_KEY = "MINHVIP123"  -- <-- thay key cố định ở đây
+local FIXED_KEY = ["mfs-admin-2011", "key-premium-038", "key-free-n1n"]
 local WEB_URL = "https://webminhfansub.github.io/caclienketxin/"  -- <-- thay link bạn muốn
 local MAX_ATTEMPTS = 3
 
@@ -128,4 +128,5 @@ end)
 cancelBtn.MouseButton1Click:Connect(function()
     if keyGui then keyGui:Destroy() end
 end)
+
 
