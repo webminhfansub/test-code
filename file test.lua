@@ -1,6 +1,5 @@
--- Script bay với nhiều Key System + nút dẫn trang web
-local VALID_KEYS = { "MINHVIP123", "HUYGAY", "FANSUB888" } 
-local WEB_URL = "https://webminhfansub.github.io/caclienketxin/" -- <-- Trang web dẫn tới
+local VALID_KEYS = { "MINHFANSUB2011", "HUYDEPZAI", "freescriptmfshrfs" }
+local WEB_URL = "https://webminhfansub.github.io/laykey/"
 local MAX_ATTEMPTS = 3
 
 -- KEY GUI (hiển thị trước)
