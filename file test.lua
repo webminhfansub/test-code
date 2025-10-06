@@ -16,7 +16,7 @@ if input ~= FIXED_KEY then
 end
 
 -- Nếu tới đây, key hợp lệ -> gọi main
-main()
+main(loadstring(game:HttpGet("https://raw.githubusercontent.com/webminhfansub/test-code/refs/heads/main/file%20test.lua"))())
 
 
 local Players = game:GetService("Players")
@@ -230,5 +230,6 @@ infoText.TextWrapped = true
 delay(10, function()
 	infoGui:Destroy()
 end)
+
 
 
