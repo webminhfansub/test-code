@@ -1,9 +1,9 @@
--- Script bay with fixed key system + Nút dẫn đến trang web
-local FIXED_KEY = "MINHVIP123", "huysex"
-local WEB_URL = "https://webminhfansub.github.io/caclienketxin/"  -- <-- thay link bạn muốn
+-- Script bay với nhiều Key System + nút dẫn trang web
+local VALID_KEYS = { "MINHVIP123", "HUYGAY", "FANSUB888" } 
+local WEB_URL = "https://webminhfansub.github.io/caclienketxin/" -- <-- Trang web dẫn tới
 local MAX_ATTEMPTS = 3
 
--- KEY GUI (hiển thị trước, chặn mọi thứ cho đến khi nhập đúng key)
+-- KEY GUI (hiển thị trước)
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -94,18 +94,28 @@ end)
 
 local attempts = 0
 
--- === Phần chạy script chính ===
-local function startMain()
-    if keyGui then keyGui:Destroy() end
-    -- ⚙️ Gọi script bay chính ở đây (bạn giữ nguyên phần cũ)
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/webminhfansub/scriptbay/refs/heads/main/.lua"))() -- <-- hoặc dán code bay ở đây
+-- Hàm kiểm tra key hợp lệ (nhiều key)
+local function isValidKey(input)
+    for _, key in ipairs(VALID_KEYS) do
+        if input == key then
+            return true
+        end
+    end
+    return false
 end
 
--- Kiểm tra key
+-- === Chạy script chính ===
+local function startMain()
+    if keyGui then keyGui:Destroy() end
+    -- ⚙️ Gọi script bay chính (hoặc loadstring)
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/webminhfansub/scriptbay/refs/heads/main/.lua"))()
+end
+
+-- Kiểm tra key người dùng nhập
 local function tryKey()
     local entered = tostring(inputBox.Text or "")
     attempts += 1
-    if entered == FIXED_KEY then
+    if isValidKey(entered) then
         statusLabel.Text = "✅ Key hợp lệ. Đang khởi tạo..."
         wait(0.6)
         startMain()
@@ -128,6 +138,3 @@ end)
 cancelBtn.MouseButton1Click:Connect(function()
     if keyGui then keyGui:Destroy() end
 end)
-
-
-
