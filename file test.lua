@@ -1,9 +1,3 @@
-
-@DucVN1505
-2 ngày trước
-Copy đây nha
-
-
 local Players = game:GetService("Players")
 local RS = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
@@ -180,4 +174,39 @@ RS.RenderStepped:Connect(function()
             hrp.Velocity = Vector3.new(0,0,0)
         end
     end
+
 end)
+
+-- Bảng thông tin cá nhân hiển thị trong 10 giây rồi tự ẩn
+local infoGui = Instance.new("ScreenGui")
+local infoFrame = Instance.new("Frame")
+local infoText = Instance.new("TextLabel")
+
+infoGui.Name = "ThongTinAdmin"
+infoGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+infoGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+infoGui.ResetOnSpawn = false
+
+infoFrame.Parent = infoGui
+infoFrame.BackgroundColor3 = Color3.fromRGB(50, 200, 255)
+infoFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+infoFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
+infoFrame.Size = UDim2.new(0, 300, 0, 150)
+infoFrame.BackgroundTransparency = 0.1
+infoFrame.Active = true
+infoFrame.Draggable = true
+
+infoText.Parent = infoFrame
+infoText.Size = UDim2.new(1, 0, 1, 0)
+infoText.BackgroundTransparency = 1
+infoText.Font = Enum.Font.SourceSansBold
+infoText.TextColor3 = Color3.fromRGB(0, 0, 0)
+infoText.TextScaled = true
+infoText.Text = "THÔNG TIN ADMIN \n\nADMIN: MinhFansub\nPhiên bản: 1.0\nLiên hệ https://www.facebook.com/minh.fansub"
+infoText.TextWrapped = true
+
+-- Tự động ẩn bảng sau 10 giây
+delay(10, function()
+	infoGui:Destroy()
+end)
+
