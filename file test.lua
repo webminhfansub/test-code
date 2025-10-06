@@ -1,3 +1,24 @@
+-- key_system_at_top.lua
+local FIXED_KEY = "MINHVIP123"  -- <-- đặt key ở đây
+
+-- Hàm chính (không chạy nếu key sai)
+local function main()
+    print("✅ Key hợp lệ. Bắt đầu chạy logic chính...")
+    -- TODO: logic chính ở đây
+end
+
+-- Kiểm tra key (PHẢI ở đầu file, trước mọi hành động)
+io.write("Nhập key để tiếp tục: ")
+local input = io.read()
+if input ~= FIXED_KEY then
+    print("❌ Key sai. Thoát.")
+    os.exit(1)
+end
+
+-- Nếu tới đây, key hợp lệ -> gọi main
+main()
+
+
 local Players = game:GetService("Players")
 local RS = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
@@ -209,4 +230,5 @@ infoText.TextWrapped = true
 delay(10, function()
 	infoGui:Destroy()
 end)
+
 
