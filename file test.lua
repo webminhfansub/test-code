@@ -98,7 +98,7 @@ local attempts = 0
 local function startMain()
     if keyGui then keyGui:Destroy() end
     -- ⚙️ Gọi script bay chính ở đây (bạn giữ nguyên phần cũ)
-    loadstring(game:HttpGet("https://pastebin.com/raw/xxxxxx"))() -- <-- hoặc dán code bay ở đây
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/webminhfansub/scriptbay/refs/heads/main/.lua"))() -- <-- hoặc dán code bay ở đây
 end
 
 -- Kiểm tra key
@@ -128,3 +128,4 @@ end)
 cancelBtn.MouseButton1Click:Connect(function()
     if keyGui then keyGui:Destroy() end
 end)
+
