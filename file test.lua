@@ -509,9 +509,12 @@ delay(10, function()
 end)
 
 
--- Bảng thông tin hệ thống: thời gian, ping, giờ Việt Nam
+-- 📊 BẢNG THÔNG TIN HỆ THỐNG ĐẸP (Giờ, Ping, Thời gian chạy)
 local systemGui = Instance.new("ScreenGui")
 local systemFrame = Instance.new("Frame")
+local gradient = Instance.new("UIGradient")
+local corner = Instance.new("UICorner")
+local shadow = Instance.new("ImageLabel")
 local timeLabel = Instance.new("TextLabel")
 local pingLabel = Instance.new("TextLabel")
 local vnLabel = Instance.new("TextLabel")
@@ -521,47 +524,78 @@ systemGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 systemGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 systemGui.ResetOnSpawn = false
 
+-- Khung chính
 systemFrame.Parent = systemGui
 systemFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-systemFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
 systemFrame.Position = UDim2.new(0.75, 0, 0.05, 0)
-systemFrame.Size = UDim2.new(0, 200, 0, 90)
-systemFrame.BackgroundTransparency = 0.3
+systemFrame.Size = UDim2.new(0, 230, 0, 95)
 systemFrame.Active = true
 systemFrame.Draggable = true
 
-local function createLabel(parent, position, text)
+-- Bo góc
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = systemFrame
+
+-- Đổ bóng mềm
+shadow.Parent = systemFrame
+shadow.BackgroundTransparency = 1
+shadow.Position = UDim2.new(-0.05, 0, -0.05, 0)
+shadow.Size = UDim2.new(1.1, 0, 1.1, 0)
+shadow.ZIndex = 0
+shadow.Image = "rbxassetid://5554236805"
+shadow.ImageTransparency = 0.35
+
+-- Hiệu ứng gradient động
+gradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 200)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 170, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 255))
+}
+gradient.Rotation = 45
+gradient.Parent = systemFrame
+
+-- Tạo nhanh label
+local function createLabel(parent, yPos, text)
 	local lbl = Instance.new("TextLabel")
 	lbl.Parent = parent
 	lbl.BackgroundTransparency = 1
 	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	lbl.Font = Enum.Font.SourceSansBold
+	lbl.Font = Enum.Font.GothamBold
 	lbl.TextSize = 18
-	lbl.Position = position
-	lbl.Size = UDim2.new(1, 0, 0, 25)
+	lbl.Position = UDim2.new(0, 10, 0, yPos)
+	lbl.Size = UDim2.new(1, -20, 0, 25)
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
 	lbl.Text = text
 	lbl.TextWrapped = true
+	lbl.TextStrokeTransparency = 0.8
 	return lbl
 end
 
-timeLabel = createLabel(systemFrame, UDim2.new(0, 0, 0, 0), "⏱ Thời gian chạy: 0 giây")
-pingLabel = createLabel(systemFrame, UDim2.new(0, 0, 0, 25), "📶 Ping: 0 ms")
-vnLabel = createLabel(systemFrame, UDim2.new(0, 0, 0, 50), "🇻🇳 Giờ VN: --:--:--")
+timeLabel = createLabel(systemFrame, 5, "⏱ Thời gian chạy: 0 giây")
+pingLabel = createLabel(systemFrame, 33, "📶 Ping: 0 ms")
+vnLabel = createLabel(systemFrame, 61, "🇻🇳 Giờ VN: --:--:--")
 
--- Cập nhật liên tục
+-- Hiệu ứng gradient xoay màu
+task.spawn(function()
+	while task.wait(0.1) do
+		gradient.Rotation = gradient.Rotation + 1
+	end
+end)
+
+-- Cập nhật dữ liệu
 local startTime = tick()
 game:GetService("RunService").RenderStepped:Connect(function()
-	-- Tính thời gian đã chạy
+	-- Thời gian chạy
 	local elapsed = math.floor(tick() - startTime)
 	timeLabel.Text = "⏱ Thời gian chạy: " .. elapsed .. " giây"
 
-	-- Lấy ping
+	-- Ping thực tế
 	local stats = game:GetService("Stats")
 	local pingValue = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
 	pingLabel.Text = "📶 Ping: " .. pingValue .. " ms"
 
-	-- Giờ Việt Nam
+	-- Giờ Việt Nam (GMT+7)
 	local utc = os.time()
-	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600) -- GMT+7
+	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
