@@ -509,12 +509,14 @@ delay(10, function()
 end)
 
 
--- 📊 BẢNG THÔNG TIN HỆ THỐNG ĐẸP (Giờ, Ping, Thời gian chạy)
+-- 🌈 BẢNG THÔNG TIN HỆ THỐNG (CỰC ĐẸP)
 local systemGui = Instance.new("ScreenGui")
 local systemFrame = Instance.new("Frame")
 local gradient = Instance.new("UIGradient")
 local corner = Instance.new("UICorner")
 local shadow = Instance.new("ImageLabel")
+
+local header = Instance.new("TextLabel")
 local timeLabel = Instance.new("TextLabel")
 local pingLabel = Instance.new("TextLabel")
 local vnLabel = Instance.new("TextLabel")
@@ -526,68 +528,83 @@ systemGui.ResetOnSpawn = false
 
 -- Khung chính
 systemFrame.Parent = systemGui
-systemFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-systemFrame.Position = UDim2.new(0.75, 0, 0.05, 0)
-systemFrame.Size = UDim2.new(0, 230, 0, 95)
+systemFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+systemFrame.Position = UDim2.new(0.74, 0, 0.05, 0)
+systemFrame.Size = UDim2.new(0, 260, 0, 120)
 systemFrame.Active = true
 systemFrame.Draggable = true
 
 -- Bo góc
-corner.CornerRadius = UDim.new(0, 12)
+corner.CornerRadius = UDim.new(0, 15)
 corner.Parent = systemFrame
 
--- Đổ bóng mềm
+-- Đổ bóng ngoài
 shadow.Parent = systemFrame
 shadow.BackgroundTransparency = 1
-shadow.Position = UDim2.new(-0.05, 0, -0.05, 0)
-shadow.Size = UDim2.new(1.1, 0, 1.1, 0)
+shadow.Position = UDim2.new(-0.1, 0, -0.1, 0)
+shadow.Size = UDim2.new(1.2, 0, 1.2, 0)
 shadow.ZIndex = 0
 shadow.Image = "rbxassetid://5554236805"
-shadow.ImageTransparency = 0.35
+shadow.ImageTransparency = 0.4
 
--- Hiệu ứng gradient động
+-- Hiệu ứng chuyển màu gradient
 gradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 200)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 170, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 255))
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 180)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 140, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 220))
 }
-gradient.Rotation = 45
+gradient.Rotation = 0
 gradient.Parent = systemFrame
 
--- Tạo nhanh label
-local function createLabel(parent, yPos, text)
+-- Tiêu đề
+header.Parent = systemFrame
+header.BackgroundTransparency = 1
+header.TextColor3 = Color3.fromRGB(255, 255, 255)
+header.Font = Enum.Font.GothamBlack
+header.Text = "📡  BẢNG HỆ THỐNG"
+header.TextScaled = true
+header.Size = UDim2.new(1, 0, 0, 25)
+header.Position = UDim2.new(0, 0, 0, 2)
+header.TextStrokeTransparency = 0.8
+header.TextYAlignment = Enum.TextYAlignment.Center
+
+-- Hàm tạo label đẹp
+local function makeLabel(parent, y, text)
 	local lbl = Instance.new("TextLabel")
 	lbl.Parent = parent
 	lbl.BackgroundTransparency = 1
 	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	lbl.Font = Enum.Font.GothamBold
+	lbl.Font = Enum.Font.GothamSemibold
 	lbl.TextSize = 18
-	lbl.Position = UDim2.new(0, 10, 0, yPos)
-	lbl.Size = UDim2.new(1, -20, 0, 25)
 	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Position = UDim2.new(0, 10, 0, y)
+	lbl.Size = UDim2.new(1, -20, 0, 25)
 	lbl.Text = text
-	lbl.TextWrapped = true
 	lbl.TextStrokeTransparency = 0.8
 	return lbl
 end
 
-timeLabel = createLabel(systemFrame, 5, "⏱ Thời gian chạy: 0 giây")
-pingLabel = createLabel(systemFrame, 33, "📶 Ping: 0 ms")
-vnLabel = createLabel(systemFrame, 61, "🇻🇳 Giờ VN: --:--:--")
+timeLabel = makeLabel(systemFrame, 35, "⏱ Thời gian máy chủ: 00:00:00")
+pingLabel = makeLabel(systemFrame, 65, "📶 Ping: 0 ms")
+vnLabel = makeLabel(systemFrame, 95, "🇻🇳 Giờ VN: --:--:--")
 
--- Hiệu ứng gradient xoay màu
+-- Gradient xoay liên tục (hiệu ứng cầu vồng)
 task.spawn(function()
-	while task.wait(0.1) do
-		gradient.Rotation = gradient.Rotation + 1
+	while task.wait(0.05) do
+		gradient.Rotation = (gradient.Rotation + 1) % 360
 	end
 end)
 
--- Cập nhật dữ liệu
+-- Đồng hồ máy chủ và VN
 local startTime = tick()
+
 game:GetService("RunService").RenderStepped:Connect(function()
-	-- Thời gian chạy
+	-- Tính thời gian đã chạy
 	local elapsed = math.floor(tick() - startTime)
-	timeLabel.Text = "⏱ Thời gian chạy: " .. elapsed .. " giây"
+	local hours = math.floor(elapsed / 3600)
+	local minutes = math.floor((elapsed % 3600) / 60)
+	local seconds = elapsed % 60
+	timeLabel.Text = string.format("⏱ Thời gian máy chủ: %02d:%02d:%02d", hours, minutes, seconds)
 
 	-- Ping thực tế
 	local stats = game:GetService("Stats")
