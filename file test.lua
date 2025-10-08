@@ -1,23 +1,69 @@
--- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (THEO TÊN)
+-- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (THÔNG BÁO KIỂU LỖI KHI GIA NHẬP)
 local blockedPlayers = {
-	["xmzioh"] = true,
+	["NguoiBiChan1"] = true,  -- Thay bằng tên người bạn muốn cấm
 	["PlayerHacker"] = true,
 	["Troller123"] = true
 }
 
 local player = game.Players.LocalPlayer
 
--- Kiểm tra xem người chơi có nằm trong danh sách cấm không
 if blockedPlayers[player.Name] then
-	game:GetService("StarterGui"):SetCore("SendNotification", {
-		Title = "🚫 TRUY CẬP BỊ TỪ CHỐI";
-		Text = "Xin lỗi " .. player.Name .. ", bạn không được phép dùng script này!";
-		Duration = 6
-	})
-	wait(2)
-	script:Destroy() -- Xóa toàn bộ script để họ không thể tiếp tục
+	-- Giao diện thông báo cấm
+	local banGui = Instance.new("ScreenGui")
+	local frame = Instance.new("Frame")
+	local title = Instance.new("TextLabel")
+	local text = Instance.new("TextLabel")
+	local button = Instance.new("TextButton")
+
+	banGui.Name = "BanNotice"
+	banGui.Parent = player:WaitForChild("PlayerGui")
+
+	frame.Parent = banGui
+	frame.Size = UDim2.new(0, 460, 0, 220)
+	frame.Position = UDim2.new(0.5, -230, 0.5, -110)
+	frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+	frame.BorderSizePixel = 0
+	frame.Active = true
+
+	title.Parent = frame
+	title.Size = UDim2.new(1, 0, 0, 40)
+	title.BackgroundTransparency = 1
+	title.Font = Enum.Font.GothamBold
+	title.Text = "Lỗi Khi Sử Dụng Script"
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.TextScaled = true
+
+	text.Parent = frame
+	text.Size = UDim2.new(1, -20, 1, -80)
+	text.Position = UDim2.new(0, 10, 0, 45)
+	text.BackgroundTransparency = 1
+	text.Font = Enum.Font.Gotham
+	text.TextColor3 = Color3.fromRGB(220, 220, 220)
+	text.TextWrapped = true
+	text.TextScaled = true
+	text.Text = "Tài khoản này đã bị cấm sử dụng script này.\n\n" ..
+		"Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ ADMIN để được xem xét.\n\n(Mã Lỗi: 403)"
+
+	button.Parent = frame
+	button.Size = UDim2.new(0, 150, 0, 40)
+	button.Position = UDim2.new(0.5, -75, 1, -50)
+	button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	button.Text = "Đã hiểu"
+	button.Font = Enum.Font.GothamBold
+	button.TextColor3 = Color3.fromRGB(0, 0, 0)
+	button.TextScaled = true
+	button.MouseButton1Click:Connect(function()
+		banGui:Destroy()
+	end)
+
+	-- Xóa script chính để họ không thể tiếp tục dùng
+	task.delay(2, function()
+		script:Destroy()
+	end)
+
 	return
 end
+
 
 
 local main = Instance.new("ScreenGui")
@@ -638,5 +684,6 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
+
 
 
