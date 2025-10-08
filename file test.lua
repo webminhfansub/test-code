@@ -1,670 +1,436 @@
--- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (VÀ KICK RA KHỎI GAME)
-local blockedPlayers = {
-	["xmzioh"] = true,  -- 🔹 thay bằng tên người chơi bị cấm
-	["PlayerHacker"] = true,
-	["Troller123"] = true
+--[=[
+Safe "Script Aggregator Launcher" — Enhanced UI
+
+Notes:
+- This file remains SAFE: it only shows hub names/URLs and never executes remote code.
+- Improvements: dark glass UI, header with icon, search filter, categories, scrolling list, hover effects, thumbnails (placeholders), copy-to-clipboard and in-GUI URL preview.
+- Text is bilingual (Vietnamese + English) in labels.
+
+Usage: paste into a LocalScript inside StarterPlayerScripts or run in an environment where PlayerGui and setclipboard are allowed.
+]=]
+
+local Hubs = {
+    {name = "Blue-X", url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", tag = "General"},
+    {name = "Quantum-Hub", url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", tag = "General"},
+    {name = "Cokka-Hub", url = "https://raw.githubusercontent.com/UserDevEthical/Loadstring/main/CokkaHub.lua", tag = "Utility"},
+    {name = "Ldt-Hub", url = "https://raw.githubusercontent.com/thohihi312-coder/ldt-hub/refs/heads/main/main.lua.txt", tag = "General"},
+    {name = "Vector-Hub", url = "https://raw.githubusercontent.com/AAwful/Vector_Hub/0/v2", tag = "Combat"},
+    {name = "Than-Hub", url = "https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1", tag = "General"},
+    {name = "Xero-Hub", url = "https://raw.githubusercontent.com/Xero2409/XeroHub/refs/heads/main/main.lua", tag = "General"},
+    {name = "Volcano-Hub-V3", url = "https://raw.githubusercontent.com/indexeduu/BF-NewVer/refs/heads/main/V3New.lua", tag = "Utility"},
+    {name = "REDZ Beta", url = "https://raw.githubusercontent.com/tlredz/Scripts/refs/heads/main/main.luau", tag = "General"},
+    {name = "W-azure", url = "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua", tag = "General"},
 }
 
-local player = game.Players.LocalPlayer
+-- Services
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
-if blockedPlayers[player.Name] then
-	local banGui = Instance.new("ScreenGui")
-	local frame = Instance.new("Frame")
-	local title = Instance.new("TextLabel")
-	local text = Instance.new("TextLabel")
-
-	banGui.Name = "BanNotice"
-	banGui.Parent = player:WaitForChild("PlayerGui")
-
-	frame.Parent = banGui
-	frame.Size = UDim2.new(0, 460, 0, 220)
-	frame.Position = UDim2.new(0.5, -230, 0.5, -110)
-	frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	frame.BorderSizePixel = 0
-	frame.Active = true
-
-	title.Parent = frame
-	title.Size = UDim2.new(1, 0, 0, 40)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.Text = "🚫 BẠN BỊ CẤM DÙNG SCRIPT NÀY"
-	title.TextColor3 = Color3.fromRGB(255, 70, 70)
-	title.TextScaled = true
-
-	text.Parent = frame
-	text.Size = UDim2.new(1, -20, 1, -80)
-	text.Position = UDim2.new(0, 10, 0, 45)
-	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.Gotham
-	text.TextColor3 = Color3.fromRGB(230, 230, 230)
-	text.TextWrapped = true
-	text.TextScaled = true
-	text.Text = "Tài khoản này đã bị cấm sử dụng script này.\n\n" ..
-		"Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ ADMIN để được xem xét.\n\n(Mã lỗi: 403)"
-
-	wait(5)
-	player:Kick("🚫 Bạn bị cấm sử dụng script này!")
-	return
+-- Cleanup old GUI
+if PlayerGui:FindFirstChild("SafeScriptLauncher") then
+    PlayerGui.SafeScriptLauncher:Destroy()
 end
 
--- 🔽 Dưới đây là toàn bộ code gốc “script bay” của bạn
-----------------------------------------------------------
-local main = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local up = Instance.new("TextButton")
-local down = Instance.new("TextButton")
-local onof = Instance.new("TextButton")
-local TextLabel = Instance.new("TextLabel")
-local plus = Instance.new("TextButton")
-local speed = Instance.new("TextLabel")
-local mine = Instance.new("TextButton")
-local closebutton = Instance.new("TextButton")
-local mini = Instance.new("TextButton")
-local mini2 = Instance.new("TextButton")
+-- Root ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SafeScriptLauncher"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
 
-main.Name = "main"
-main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-main.ResetOnSpawn = false
+-- Main container (centered)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "Main"
+mainFrame.Size = UDim2.new(0, 520, 0, 540)
+mainFrame.Position = UDim2.new(0.5, -260, 0.12, 0)
+mainFrame.BackgroundTransparency = 0
+mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
 
-Frame.Parent = main
-Frame.BackgroundColor3 = Color3.fromRGB(163, 255, 137)
-Frame.BorderColor3 = Color3.fromRGB(103, 221, 213)
-Frame.Position = UDim2.new(0.100320168, 0, 0.379746825, 0)
-Frame.Size = UDim2.new(0, 190, 0, 57)
+local mainCorner = Instance.new("UICorner", mainFrame)
+mainCorner.CornerRadius = UDim.new(0, 14)
 
-up.Name = "up"
-up.Parent = Frame
-up.BackgroundColor3 = Color3.fromRGB(79, 255, 152)
-up.Size = UDim2.new(0, 44, 0, 28)
-up.Font = Enum.Font.SourceSans
-up.Text = "UP"
-up.TextColor3 = Color3.fromRGB(0, 0, 0)
-up.TextSize = 14.000
+-- Subtle shadow (frame behind)
+local shadow = Instance.new("Frame")
+shadow.Size = mainFrame.Size + UDim2.new(0,8,0,8)
+shadow.Position = mainFrame.Position - UDim2.new(0,4,0,4)
+shadow.BackgroundColor3 = Color3.fromRGB(0,0,0)
+shadow.BorderSizePixel = 0
+shadow.BackgroundTransparency = 0.7
+shadow.ZIndex = mainFrame.ZIndex - 1
+shadow.Parent = screenGui
+local shadowCorner = Instance.new("UICorner", shadow)
+shadowCorner.CornerRadius = UDim.new(0, 16)
 
-down.Name = "down"
-down.Parent = Frame
-down.BackgroundColor3 = Color3.fromRGB(215, 255, 121)
-down.Position = UDim2.new(0, 0, 0.491228074, 0)
-down.Size = UDim2.new(0, 44, 0, 28)
-down.Font = Enum.Font.SourceSans
-down.Text = "DOWN"
-down.TextColor3 = Color3.fromRGB(0, 0, 0)
-down.TextSize = 14.000
+-- Header
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 78)
+header.BackgroundTransparency = 0
+header.BackgroundColor3 = Color3.fromRGB(28,28,30)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+local headerCorner = Instance.new("UICorner", header)
+headerCorner.CornerRadius = UDim.new(0, 12)
 
-onof.Name = "onof"
-onof.Parent = Frame
-onof.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
-onof.Position = UDim2.new(0.702823281, 0, 0.491228074, 0)
-onof.Size = UDim2.new(0, 56, 0, 28)
-onof.Font = Enum.Font.SourceSans
-onof.Text = "fly"
-onof.TextColor3 = Color3.fromRGB(0, 0, 0)
-onof.TextSize = 14.000
+local logo = Instance.new("ImageLabel")
+logo.Name = "Logo"
+logo.Size = UDim2.new(0, 56, 0, 56)
+logo.Position = UDim2.new(0, 16, 0, 11)
+logo.BackgroundTransparency = 1
+logo.Image = "rbxassetid://0" -- placeholder (transparent). Replace with asset id if desired.
+logo.Parent = header
 
-TextLabel.Parent = Frame
-TextLabel.BackgroundColor3 = Color3.fromRGB(242, 60, 255)
-TextLabel.Position = UDim2.new(0.469327301, 0, 0, 0)
-TextLabel.Size = UDim2.new(0, 100, 0, 28)
-TextLabel.Font = Enum.Font.SourceSans
-TextLabel.Text = "Script hack bay"
-TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
-TextLabel.TextScaled = true
-TextLabel.TextSize = 14.000
-TextLabel.TextWrapped = true
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -100, 0, 30)
+title.Position = UDim2.new(0, 84, 0, 12)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(240,240,240)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Text = "Script Launcher — Trình quản lý links"
+title.Parent = header
 
-plus.Name = "plus"
-plus.Parent = Frame
-plus.BackgroundColor3 = Color3.fromRGB(133, 145, 255)
-plus.Position = UDim2.new(0.231578946, 0, 0, 0)
-plus.Size = UDim2.new(0, 45, 0, 28)
-plus.Font = Enum.Font.SourceSans
-plus.Text = "+"
-plus.TextColor3 = Color3.fromRGB(0, 0, 0)
-plus.TextScaled = true
-plus.TextSize = 14.000
-plus.TextWrapped = true
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -100, 0, 20)
+subtitle.Position = UDim2.new(0, 84, 0, 36)
+subtitle.BackgroundTransparency = 1
+subtitle.Font = Enum.Font.Gotham
+title.TextSize = 14
+subtitle.TextColor3 = Color3.fromRGB(170,170,170)
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Text = "An toàn: chỉ sao chép/hiển thị URL — Không thực thi mã từ xa"
+subtitle.Parent = header
 
-speed.Name = "speed"
-speed.Parent = Frame
-speed.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
-speed.Position = UDim2.new(0.468421042, 0, 0.491228074, 0)
-speed.Size = UDim2.new(0, 44, 0, 28)
-speed.Font = Enum.Font.SourceSans
-speed.Text = "1"
-speed.TextColor3 = Color3.fromRGB(0, 0, 0)
-speed.TextScaled = true
-speed.TextSize = 14.000
-speed.TextWrapped = true
-
-mine.Name = "mine"
-mine.Parent = Frame
-mine.BackgroundColor3 = Color3.fromRGB(123, 255, 247)
-mine.Position = UDim2.new(0.231578946, 0, 0.491228074, 0)
-mine.Size = UDim2.new(0, 45, 0, 29)
-mine.Font = Enum.Font.SourceSans
-mine.Text = "-"
-mine.TextColor3 = Color3.fromRGB(0, 0, 0)
-mine.TextScaled = true
-mine.TextSize = 14.000
-mine.TextWrapped = true
-
-closebutton.Name = "Close"
-closebutton.Parent = main.Frame
-closebutton.BackgroundColor3 = Color3.fromRGB(225, 25, 0)
-closebutton.Font = "SourceSans"
-closebutton.Size = UDim2.new(0, 45, 0, 28)
-closebutton.Text = "X"
-closebutton.TextSize = 30
-closebutton.Position =  UDim2.new(0, 0, -1, 27)
-
-mini.Name = "minimize"
-mini.Parent = main.Frame
-mini.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
-mini.Font = "SourceSans"
-mini.Size = UDim2.new(0, 45, 0, 28)
-mini.Text = "-"
-mini.TextSize = 40
-mini.Position = UDim2.new(0, 44, -1, 27)
-
-mini2.Name = "minimize2"
-mini2.Parent = main.Frame
-mini2.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
-mini2.Font = "SourceSans"
-mini2.Size = UDim2.new(0, 45, 0, 28)
-mini2.Text = "+"
-mini2.TextSize = 40
-mini2.Position = UDim2.new(0, 44, -1, 57)
-mini2.Visible = false
-
-speeds = 1
-
-local speaker = game:GetService("Players").LocalPlayer
-
-local chr = game.Players.LocalPlayer.Character
-local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-
-nowe = false
-
-game:GetService("StarterGui"):SetCore("SendNotification", { 
-	Title = "script hack bay";
-	Text = "BY Minhfansub";
-	Icon = "rbxthumb://type=Asset&id=5107182114&w=150&h=150"})
-Duration = 5;
-
-Frame.Active = true -- main = gui
-Frame.Draggable = true
-
-onof.MouseButton1Down:connect(function()
-
-	if nowe == true then
-		nowe = false
-
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
-		speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-	else 
-		nowe = true
-
-
-
-		for i = 1, speeds do
-			spawn(function()
-
-				local hb = game:GetService("RunService").Heartbeat	
-
-
-				tpwalking = true
-				local chr = game.Players.LocalPlayer.Character
-				local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-				while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-					if hum.MoveDirection.Magnitude > 0 then
-						chr:TranslateBy(hum.MoveDirection)
-					end
-				end
-
-			end)
-		end
-		game.Players.LocalPlayer.Character.Animate.Disabled = true
-		local Char = game.Players.LocalPlayer.Character
-		local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
-
-		for i,v in next, Hum:GetPlayingAnimationTracks() do
-			v:AdjustSpeed(0)
-		end
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
-		speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-	end
-
-
-
-
-	if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
-
-
-
-		local plr = game.Players.LocalPlayer
-		local torso = plr.Character.Torso
-		local flying = true
-		local deb = true
-		local ctrl = {f = 0, b = 0, l = 0, r = 0}
-		local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		local maxspeed = 50
-		local speed = 0
-
-
-		local bg = Instance.new("BodyGyro", torso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = torso.CFrame
-		local bv = Instance.new("BodyVelocity", torso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		if nowe == true then
-			plr.Character.Humanoid.PlatformStand = true
-		end
-		while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-			game:GetService("RunService").RenderStepped:Wait()
-
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5+(speed/maxspeed)
-				if speed > maxspeed then
-					speed = maxspeed
-				end
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
-			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0,0)
-			end
-			--	game.Players.LocalPlayer.Character.Animate.Disabled = true
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-		end
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = 0
-		bg:Destroy()
-		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = false
-		game.Players.LocalPlayer.Character.Animate.Disabled = false
-		tpwalking = false
-
-
-
-
-	else
-		local plr = game.Players.LocalPlayer
-		local UpperTorso = plr.Character.UpperTorso
-		local flying = true
-		local deb = true
-		local ctrl = {f = 0, b = 0, l = 0, r = 0}
-		local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		local maxspeed = 50
-		local speed = 0
-
-
-		local bg = Instance.new("BodyGyro", UpperTorso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = UpperTorso.CFrame
-		local bv = Instance.new("BodyVelocity", UpperTorso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		if nowe == true then
-			plr.Character.Humanoid.PlatformStand = true
-		end
-		while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-			wait()
-
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5+(speed/maxspeed)
-				if speed > maxspeed then
-					speed = maxspeed
-				end
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
-			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0,0)
-			end
-
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-		end
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = 0
-		bg:Destroy()
-		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = false
-		game.Players.LocalPlayer.Character.Animate.Disabled = false
-		tpwalking = false
-
-
-
-	end
-
-
-
-
-
+-- Close button
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 36, 0, 36)
+closeBtn.Position = UDim2.new(1, -48, 0, 14)
+closeBtn.BackgroundColor3 = Color3.fromRGB(220,70,70)
+closeBtn.BorderSizePixel = 0
+closeBtn.Text = "✕"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 20
+closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
+closeBtn.Parent = header
+local closeCorner = Instance.new("UICorner", closeBtn)
+closeCorner.CornerRadius = UDim.new(0,8)
+closeBtn.MouseEnter:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.12), {Size = UDim2.new(0, 40, 0, 40)}):Play()
+end)
+closeBtn.MouseLeave:Connect(function()
+    TweenService:Create(closeBtn, TweenInfo.new(0.12), {Size = UDim2.new(0, 36, 0, 36)}):Play()
+end)
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
 end)
 
-local tis
+-- Search box
+local searchBox = Instance.new("TextBox")
+searchBox.Size = UDim2.new(0.6, -20, 0, 36)
+searchBox.Position = UDim2.new(0, 16, 0, 92)
+searchBox.BackgroundColor3 = Color3.fromRGB(24,24,26)
+searchBox.TextColor3 = Color3.fromRGB(220,220,220)
+searchBox.PlaceholderText = "Tìm kiếm tên hub hoặc tag... / Search hubs or tags"
+searchBox.ClearTextOnFocus = false
+searchBox.Font = Enum.Font.Gotham
+searchBox.TextSize = 14
+searchBox.BorderSizePixel = 0
+searchBox.Parent = mainFrame
+local sbCorner = Instance.new("UICorner", searchBox)
+sbCorner.CornerRadius = UDim.new(0,8)
 
-up.MouseButton1Down:connect(function()
-	tis = up.MouseEnter:connect(function()
-		while tis do
-			wait()
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,1,0)
-		end
-	end)
-end)
+-- Tag filter dropdown (simple)
+local tagFrame = Instance.new("Frame")
+tagFrame.Size = UDim2.new(0.32, -24, 0, 36)
+tagFrame.Position = UDim2.new(0.6, 0, 0, 92)
+tagFrame.BackgroundColor3 = Color3.fromRGB(24,24,26)
+tagFrame.BorderSizePixel = 0
+tagFrame.Parent = mainFrame
+local tagCorner = Instance.new("UICorner", tagFrame)
+tagCorner.CornerRadius = UDim.new(0,8)
+local tagLabel = Instance.new("TextLabel")
+tagLabel.Size = UDim2.new(1, -36, 1, 0)
+tagLabel.Position = UDim2.new(0, 8, 0, 0)
+tagLabel.BackgroundTransparency = 1
+tagLabel.Font = Enum.Font.Gotham
+tagLabel.TextSize = 14
+tagLabel.TextColor3 = Color3.fromRGB(200,200,200)
+tagLabel.TextXAlignment = Enum.TextXAlignment.Left
+tagLabel.Text = "Tất cả / All"
+tagLabel.Parent = tagFrame
+local tagArrow = Instance.new("TextLabel")
+tagArrow.Size = UDim2.new(0, 24, 1, 0)
+tagArrow.Position = UDim2.new(1, -28, 0, 0)
+tagArrow.BackgroundTransparency = 1
+tagArrow.Font = Enum.Font.Gotham
+tagArrow.Text = "▾"
+tagArrow.TextColor3 = Color3.fromRGB(170,170,170)
+tagArrow.TextSize = 16
+tagArrow.Parent = tagFrame
 
-up.MouseLeave:connect(function()
-	if tis then
-		tis:Disconnect()
-		tis = nil
-	end
-end)
+-- Body: scrolling list
+local bodyFrame = Instance.new("Frame")
+bodyFrame.Size = UDim2.new(1, -32, 0, 360)
+bodyFrame.Position = UDim2.new(0, 16, 0, 140)
+bodyFrame.BackgroundTransparency = 1
+bodyFrame.Parent = mainFrame
 
-local dis
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, 0, 1, 0)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 8
+scroll.BackgroundTransparency = 1
+scroll.Parent = bodyFrame
+local uiList = Instance.new("UIListLayout", scroll)
+uiList.SortOrder = Enum.SortOrder.LayoutOrder
+uiList.Padding = UDim.new(0, 10)
 
-down.MouseButton1Down:connect(function()
-	dis = down.MouseEnter:connect(function()
-		while dis do
-			wait()
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,-1,0)
-		end
-	end)
-end)
+local function makeHubCard(hub)
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(1, -8, 0, 66)
+    card.BackgroundColor3 = Color3.fromRGB(30,30,32)
+    card.BorderSizePixel = 0
+    card.Parent = scroll
+    card.LayoutOrder = 0
+    local cardCorner = Instance.new("UICorner", card)
+    cardCorner.CornerRadius = UDim.new(0,10)
 
-down.MouseLeave:connect(function()
-	if dis then
-		dis:Disconnect()
-		dis = nil
-	end
-end)
+    local thumb = Instance.new("TextLabel")
+    thumb.Size = UDim2.new(0, 46, 0, 46)
+    thumb.Position = UDim2.new(0, 10, 0, 10)
+    thumb.BackgroundColor3 = Color3.fromRGB(48,48,50)
+    thumb.Text = string.sub(hub.name,1,2):upper()
+    thumb.TextColor3 = Color3.fromRGB(230,230,230)
+    thumb.Font = Enum.Font.GothamBold
+    thumb.TextSize = 18
+    thumb.BorderSizePixel = 0
+    thumb.Parent = card
+    local thumbCorner = Instance.new("UICorner", thumb)
+    thumbCorner.CornerRadius = UDim.new(0,8)
 
+    local nameLbl = Instance.new("TextLabel")
+    nameLbl.Size = UDim2.new(0.6, -20, 0, 22)
+    nameLbl.Position = UDim2.new(0, 72, 0, 12)
+    nameLbl.BackgroundTransparency = 1
+    nameLbl.Font = Enum.Font.GothamBold
+    nameLbl.TextSize = 16
+    nameLbl.TextColor3 = Color3.fromRGB(245,245,245)
+    nameLbl.Text = hub.name
+    nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+    nameLbl.Parent = card
 
-game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
-	wait(0.7)
-	game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
-	game.Players.LocalPlayer.Character.Animate.Disabled = false
+    local tagLbl = Instance.new("TextLabel")
+    tagLbl.Size = UDim2.new(0.24, -20, 0, 18)
+    tagLbl.Position = UDim2.new(0.72, 0, 0, 12)
+    tagLbl.BackgroundColor3 = Color3.fromRGB(40,40,42)
+    tagLbl.Font = Enum.Font.Gotham
+    tagLbl.TextSize = 12
+    tagLbl.TextColor3 = Color3.fromRGB(200,200,200)
+    tagLbl.Text = hub.tag or "Unknown"
+    tagLbl.Parent = card
+    local tagCorner = Instance.new("UICorner", tagLbl)
+    tagCorner.CornerRadius = UDim.new(0,6)
 
-end)
+    local urlPreview = Instance.new("TextLabel")
+    urlPreview.Size = UDim2.new(1, -92, 0, 18)
+    urlPreview.Position = UDim2.new(0, 72, 0, 36)
+    urlPreview.BackgroundTransparency = 1
+    urlPreview.Font = Enum.Font.Gotham
+    urlPreview.TextSize = 12
+    urlPreview.TextColor3 = Color3.fromRGB(170,170,170)
+    urlPreview.TextXAlignment = Enum.TextXAlignment.Left
+    urlPreview.TextTruncate = Enum.TextTruncate.AtEnd
+    urlPreview.Text = hub.url
+    urlPreview.Parent = card
 
+    local copyBtn = Instance.new("TextButton")
+    copyBtn.Size = UDim2.new(0, 56, 0, 32)
+    copyBtn.Position = UDim2.new(1, -72, 0, 18)
+    copyBtn.BackgroundColor3 = Color3.fromRGB(60,120,240)
+    copyBtn.BorderSizePixel = 0
+    copyBtn.Font = Enum.Font.GothamBold
+    copyBtn.TextSize = 14
+    copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    copyBtn.Text = "Copy"
+    copyBtn.Parent = card
+    local copyCorner = Instance.new("UICorner", copyBtn)
+    copyCorner.CornerRadius = UDim.new(0,6)
 
-plus.MouseButton1Down:connect(function()
-	speeds = speeds + 1
-	speed.Text = speeds
-	if nowe == true then
+    -- Hover effect
+    card.MouseEnter:Connect(function()
+        TweenService:Create(card, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(36,36,38)}):Play()
+    end)
+    card.MouseLeave:Connect(function()
+        TweenService:Create(card, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(30,30,32)}):Play()
+    end)
 
+    copyBtn.MouseButton1Click:Connect(function()
+        local ok, err = pcall(function() setclipboard(hub.url) end)
+        if ok then
+            -- small confirmation label
+            local confirm = Instance.new("TextLabel")
+            confirm.Size = UDim2.new(0, 160, 0, 28)
+            confirm.Position = UDim2.new(1, -180, 1, -44)
+            confirm.BackgroundTransparency = 0.15
+            confirm.BackgroundColor3 = Color3.fromRGB(20,20,20)
+            confirm.TextColor3 = Color3.fromRGB(220,220,220)
+            confirm.Text = "Đã sao chép: " .. hub.name
+            confirm.Font = Enum.Font.Gotham
+            confirm.TextSize = 14
+            confirm.Parent = mainFrame
+            local cc = Instance.new("UICorner", confirm)
+            cc.CornerRadius = UDim.new(0,8)
+            game:GetService("Debris"):AddItem(confirm, 2.8)
+        else
+            -- show url in a dialog (fallback)
+            local dialog = Instance.new("Frame")
+            dialog.Size = UDim2.new(0, 420, 0, 120)
+            dialog.Position = UDim2.new(0.5, -210, 0.5, -60)
+            dialog.BackgroundColor3 = Color3.fromRGB(22,22,24)
+            dialog.BorderSizePixel = 0
+            dialog.Parent = screenGui
+            local dCorner = Instance.new("UICorner", dialog)
+            dCorner.CornerRadius = UDim.new(0,10)
 
-		tpwalking = false
-		for i = 1, speeds do
-			spawn(function()
+            local dTitle = Instance.new("TextLabel")
+            dTitle.Size = UDim2.new(1, -24, 0, 28)
+            dTitle.Position = UDim2.new(0, 12, 0, 12)
+            dTitle.BackgroundTransparency = 1
+            dTitle.Font = Enum.Font.GothamBold
+            dTitle.TextSize = 16
+            dTitle.TextColor3 = Color3.fromRGB(240,240,240)
+            dTitle.Text = "URL (copy manually): " .. hub.name
+            dTitle.TextXAlignment = Enum.TextXAlignment.Left
+            dTitle.Parent = dialog
 
-				local hb = game:GetService("RunService").Heartbeat	
+            local dBox = Instance.new("TextBox")
+            dBox.Size = UDim2.new(1, -24, 0, 54)
+            dBox.Position = UDim2.new(0, 12, 0, 44)
+            dBox.BackgroundColor3 = Color3.fromRGB(18,18,20)
+            dBox.TextColor3 = Color3.fromRGB(220,220,220)
+            dBox.Font = Enum.Font.Gotham
+            dBox.TextSize = 13
+            dBox.Text = hub.url
+            dBox.ClearTextOnFocus = false
+            dBox.TextXAlignment = Enum.TextXAlignment.Left
+            dBox.Parent = dialog
 
+            local okBtn = Instance.new("TextButton")
+            okBtn.Size = UDim2.new(0, 84, 0, 30)
+            okBtn.Position = UDim2.new(1, -100, 1, -42)
+            okBtn.BackgroundColor3 = Color3.fromRGB(100,200,120)
+            okBtn.Text = "OK"
+            okBtn.Font = Enum.Font.GothamBold
+            okBtn.TextSize = 14
+            okBtn.Parent = dialog
+            local okCorner = Instance.new("UICorner", okBtn)
+            okCorner.CornerRadius = UDim.new(0,6)
+            okBtn.MouseButton1Click:Connect(function()
+                dialog:Destroy()
+            end)
+        end
+    end)
 
-				tpwalking = true
-				local chr = game.Players.LocalPlayer.Character
-				local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-				while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-					if hum.MoveDirection.Magnitude > 0 then
-						chr:TranslateBy(hum.MoveDirection)
-					end
-				end
-
-			end)
-		end
-	end
-end)
-mine.MouseButton1Down:connect(function()
-	if speeds == 1 then
-		speed.Text = 'cannot be less than 1'
-		wait(1)
-		speed.Text = speeds
-	else
-		speeds = speeds - 1
-		speed.Text = speeds
-		if nowe == true then
-			tpwalking = false
-			for i = 1, speeds do
-				spawn(function()
-
-					local hb = game:GetService("RunService").Heartbeat	
-
-
-					tpwalking = true
-					local chr = game.Players.LocalPlayer.Character
-					local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-					while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-						if hum.MoveDirection.Magnitude > 0 then
-							chr:TranslateBy(hum.MoveDirection)
-						end
-					end
-
-				end)
-			end
-		end
-	end
-end)
-
-closebutton.MouseButton1Click:Connect(function()
-	main:Destroy()
-end)
-
-mini.MouseButton1Click:Connect(function()
-	up.Visible = false
-	down.Visible = false
-	onof.Visible = false
-	plus.Visible = false
-	speed.Visible = false
-	mine.Visible = false
-	mini.Visible = false
-	mini2.Visible = true
-	main.Frame.BackgroundTransparency = 1
-	closebutton.Position =  UDim2.new(0, 0, -1, 57)
-end)
-
-mini2.MouseButton1Click:Connect(function()
-	up.Visible = true
-	down.Visible = true
-	onof.Visible = true
-	plus.Visible = true
-	speed.Visible = true
-	mine.Visible = true
-	mini.Visible = true
-	mini2.Visible = false
-	main.Frame.BackgroundTransparency = 0 
-	closebutton.Position =  UDim2.new(0, 0, -1, 27)
-
-
-end)
-
--- Bảng thông tin cá nhân hiển thị trong 10 giây rồi tự ẩn
-local infoGui = Instance.new("ScreenGui")
-local infoFrame = Instance.new("Frame")
-local infoText = Instance.new("TextLabel")
-
-infoGui.Name = "ThongTinAdmin"
-infoGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-infoGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-infoGui.ResetOnSpawn = false
-
-infoFrame.Parent = infoGui
-infoFrame.BackgroundColor3 = Color3.fromRGB(50, 200, 255)
-infoFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
-infoFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
-infoFrame.Size = UDim2.new(0, 300, 0, 150)
-infoFrame.BackgroundTransparency = 0.1
-infoFrame.Active = true
-infoFrame.Draggable = true
-
-infoText.Parent = infoFrame
-infoText.Size = UDim2.new(1, 0, 1, 0)
-infoText.BackgroundTransparency = 1
-infoText.Font = Enum.Font.SourceSansBold
-infoText.TextColor3 = Color3.fromRGB(0, 0, 0)
-infoText.TextScaled = true
-infoText.Text = "THÔNG TIN ADMIN \n\nADMIN: MinhFansub\nPhiên bản: 1.0\nLiên hệ https://www.facebook.com/minh.fansub"
-infoText.TextWrapped = true
-
--- Tự động ẩn bảng sau 10 giây
-delay(10, function()
-	infoGui:Destroy()
-end)
-
-
--- 🌈 BẢNG THÔNG TIN HỆ THỐNG (CỰC ĐẸP)
-local systemGui = Instance.new("ScreenGui")
-local systemFrame = Instance.new("Frame")
-local gradient = Instance.new("UIGradient")
-local corner = Instance.new("UICorner")
-local shadow = Instance.new("ImageLabel")
-
-local header = Instance.new("TextLabel")
-local timeLabel = Instance.new("TextLabel")
-local pingLabel = Instance.new("TextLabel")
-local vnLabel = Instance.new("TextLabel")
-
-systemGui.Name = "ThongTinHeThong"
-systemGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-systemGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-systemGui.ResetOnSpawn = false
-
--- Khung chính
-systemFrame.Parent = systemGui
-systemFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-systemFrame.Position = UDim2.new(0.74, 0, 0.05, 0)
-systemFrame.Size = UDim2.new(0, 260, 0, 120)
-systemFrame.Active = true
-systemFrame.Draggable = true
-
--- Bo góc
-corner.CornerRadius = UDim.new(0, 15)
-corner.Parent = systemFrame
-
--- Đổ bóng ngoài
-shadow.Parent = systemFrame
-shadow.BackgroundTransparency = 1
-shadow.Position = UDim2.new(-0.1, 0, -0.1, 0)
-shadow.Size = UDim2.new(1.2, 0, 1.2, 0)
-shadow.ZIndex = 0
-shadow.Image = "rbxassetid://5554236805"
-shadow.ImageTransparency = 0.4
-
--- Hiệu ứng chuyển màu gradient
-gradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 180)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 140, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 220))
-}
-gradient.Rotation = 0
-gradient.Parent = systemFrame
-
--- Tiêu đề
-header.Parent = systemFrame
-header.BackgroundTransparency = 1
-header.TextColor3 = Color3.fromRGB(255, 255, 255)
-header.Font = Enum.Font.GothamBlack
-header.Text = "📡  BẢNG HỆ THỐNG"
-header.TextScaled = true
-header.Size = UDim2.new(1, 0, 0, 25)
-header.Position = UDim2.new(0, 0, 0, 2)
-header.TextStrokeTransparency = 0.8
-header.TextYAlignment = Enum.TextYAlignment.Center
-
--- Hàm tạo label đẹp
-local function makeLabel(parent, y, text)
-	local lbl = Instance.new("TextLabel")
-	lbl.Parent = parent
-	lbl.BackgroundTransparency = 1
-	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	lbl.Font = Enum.Font.GothamSemibold
-	lbl.TextSize = 18
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.Position = UDim2.new(0, 10, 0, y)
-	lbl.Size = UDim2.new(1, -20, 0, 25)
-	lbl.Text = text
-	lbl.TextStrokeTransparency = 0.8
-	return lbl
+    return card
 end
 
-timeLabel = makeLabel(systemFrame, 35, "⏱ Thời gian máy chủ: 00:00:00")
-pingLabel = makeLabel(systemFrame, 65, "📶 Ping: 0 ms")
-vnLabel = makeLabel(systemFrame, 95, "🇻🇳 Giờ VN: --:--:--")
+-- Populate list
+for i, hub in ipairs(Hubs) do
+    local c = makeHubCard(hub)
+    c.LayoutOrder = i
+end
 
--- Gradient xoay liên tục (hiệu ứng cầu vồng)
-task.spawn(function()
-	while task.wait(0.05) do
-		gradient.Rotation = (gradient.Rotation + 1) % 360
-	end
+-- Update scroll canvas size when content changes
+uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scroll.CanvasSize = UDim2.new(0, 0, 0, uiList.AbsoluteContentSize.Y + 12)
 end)
 
--- Đồng hồ máy chủ và VN
-local startTime = tick()
+-- Simple search/filter
+local function matches(hub, query, tag)
+    if query == "" then
+        return (tag == "All" or tag == hub.tag or tag == "")
+    end
+    local q = string.lower(query)
+    if string.find(string.lower(hub.name), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
+    if string.find(string.lower(hub.tag or ""), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
+    if string.find(string.lower(hub.url), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
+    return false
+end
 
-game:GetService("RunService").RenderStepped:Connect(function()
-	-- Tính thời gian đã chạy
-	local elapsed = math.floor(tick() - startTime)
-	local hours = math.floor(elapsed / 3600)
-	local minutes = math.floor((elapsed % 3600) / 60)
-	local seconds = elapsed % 60
-	timeLabel.Text = string.format("⏱ Thời gian máy chủ: %02d:%02d:%02d", hours, minutes, seconds)
+local currentTag = "All"
+local function refreshList(filterText)
+    filterText = filterText or ""
+    for _, child in ipairs(scroll:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    local order = 1
+    for i, hub in ipairs(Hubs) do
+        if matches(hub, filterText, currentTag) then
+            local card = makeHubCard(hub)
+            card.LayoutOrder = order
+            order = order + 1
+        end
+    end
+    uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Wait() -- ensure size update
+    scroll.CanvasSize = UDim2.new(0, 0, 0, uiList.AbsoluteContentSize.Y + 12)
+end
 
-	-- Ping thực tế
-	local stats = game:GetService("Stats")
-	local pingValue = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-	pingLabel.Text = "📶 Ping: " .. pingValue .. " ms"
-
-	-- Giờ Việt Nam (GMT+7)
-	local utc = os.time()
-	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
-	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    refreshList(searchBox.Text)
 end)
 
+-- Simple tag dropdown: toggles between All and first hub tags (very basic)
+local tags = {"All"}
+for _, h in ipairs(Hubs) do
+    if h.tag and not table.find(tags, h.tag) then table.insert(tags, h.tag) end
+end
+
+local tagOpen = false
+local dropdown
+local function openTagDropdown()
+    if tagOpen then return end
+    tagOpen = true
+    dropdown = Instance.new("Frame")
+    dropdown.Size = UDim2.new(0, 160, 0, math.min(30 * #tags, 180))
+    dropdown.Position = UDim2.new(0.68, 0, 0, 92)
+    dropdown.BackgroundColor3 = Color3.fromRGB(20,20,22)
+    dropdown.BorderSizePixel = 0
+    dropdown.Parent = mainFrame
+    local dcorner = Instance.new("UICorner", dropdown)
+    dcorner.CornerRadius = UDim.new(0,8)
+    local layout = Instance.new("UIListLayout", dropdown)
+    layout.Padding = UDim.new(0, 4)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    for i, t in ipairs(tags) do
+        local it = Instance.new("TextButton")
+        it.Size = UDim2.new(1, -12, 0, 28)
+        it.Position = UDim2.new(0, 6, 0, (i-1) * 32 + 6)
+        it.BackgroundTransparency = 1
+        it.Font = Enum.Font.Gotham
+        it.TextSize = 14
+        it.TextColor3 = Color3.fromRGB(220,220,220)
+        it.Text = t
+        it.Parent = dropdown
+        it.MouseButton1Click:Connect(function()
+            currentTag = t
+            tagLabel.Text = t .. ""
+            dropdown:Destroy()
+            tagOpen = false
+            refreshList(searchBox.Text)
+        end)
+    end
+end
+
+tagFrame.MouseButton1Click:Connect(openTagDropdown)
+tagFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then openTagDropdown() end
+end)
+
+-- initial layout
+refreshList("")
+
+print("Enhanced SafeScriptLauncher loaded. UI updated with improved visuals.")
