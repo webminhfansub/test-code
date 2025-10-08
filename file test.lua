@@ -1,766 +1,166 @@
--- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (VÀ KICK RA KHỎI GAME)
-local blockedPlayers = {
-	["candyx2747"] = true,  -- 🔹 thay bằng tên người chơi bị cấm
-	["Quanghuy_2511"] = true,
-	["Troller123"] = true
-}
-
-local player = game.Players.LocalPlayer
-
-if blockedPlayers[player.Name] then
-	local banGui = Instance.new("ScreenGui")
-	local frame = Instance.new("Frame")
-	local title = Instance.new("TextLabel")
-	local text = Instance.new("TextLabel")
-
-	banGui.Name = "BanNotice"
-	banGui.Parent = player:WaitForChild("PlayerGui")
-
-	frame.Parent = banGui
-	frame.Size = UDim2.new(0, 460, 0, 220)
-	frame.Position = UDim2.new(0.5, -230, 0.5, -110)
-	frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	frame.BorderSizePixel = 0
-	frame.Active = true
-
-	title.Parent = frame
-	title.Size = UDim2.new(1, 0, 0, 40)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBold
-	title.Text = "🚫 BẠN BỊ CẤM DÙNG SCRIPT NÀY"
-	title.TextColor3 = Color3.fromRGB(255, 70, 70)
-	title.TextScaled = true
-
-	text.Parent = frame
-	text.Size = UDim2.new(1, -20, 1, -80)
-	text.Position = UDim2.new(0, 10, 0, 45)
-	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.Gotham
-	text.TextColor3 = Color3.fromRGB(230, 230, 230)
-	text.TextWrapped = true
-	text.TextScaled = true
-	text.Text = "Tài khoản này đã bị cấm sử dụng script này.\n\n" ..
-		"Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ ADMIN để được xem xét.\n\n(Mã lỗi: 403)"
-
-	wait(5)
-	player:Kick("🚫 Bạn bị cấm sử dụng script này!")
-	return
-end
-
--- 🔽 Dưới đây là toàn bộ code gốc “script bay” của bạn
-----------------------------------------------------------
-local main = Instance.new("ScreenGui")
-local Frame = Instance.new("Frame")
-local up = Instance.new("TextButton")
-local down = Instance.new("TextButton")
-local onof = Instance.new("TextButton")
-local TextLabel = Instance.new("TextLabel")
-local plus = Instance.new("TextButton")
-local speed = Instance.new("TextLabel")
-local mine = Instance.new("TextButton")
-local closebutton = Instance.new("TextButton")
-local mini = Instance.new("TextButton")
-local mini2 = Instance.new("TextButton")
-
-main.Name = "main"
-main.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-main.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-main.ResetOnSpawn = false
-
-Frame.Parent = main
-Frame.BackgroundColor3 = Color3.fromRGB(163, 255, 137)
-Frame.BorderColor3 = Color3.fromRGB(103, 221, 213)
-Frame.Position = UDim2.new(0.100320168, 0, 0.379746825, 0)
-Frame.Size = UDim2.new(0, 190, 0, 57)
-
-up.Name = "up"
-up.Parent = Frame
-up.BackgroundColor3 = Color3.fromRGB(79, 255, 152)
-up.Size = UDim2.new(0, 44, 0, 28)
-up.Font = Enum.Font.SourceSans
-up.Text = "UP"
-up.TextColor3 = Color3.fromRGB(0, 0, 0)
-up.TextSize = 14.000
-
-down.Name = "down"
-down.Parent = Frame
-down.BackgroundColor3 = Color3.fromRGB(215, 255, 121)
-down.Position = UDim2.new(0, 0, 0.491228074, 0)
-down.Size = UDim2.new(0, 44, 0, 28)
-down.Font = Enum.Font.SourceSans
-down.Text = "DOWN"
-down.TextColor3 = Color3.fromRGB(0, 0, 0)
-down.TextSize = 14.000
-
-onof.Name = "onof"
-onof.Parent = Frame
-onof.BackgroundColor3 = Color3.fromRGB(255, 249, 74)
-onof.Position = UDim2.new(0.702823281, 0, 0.491228074, 0)
-onof.Size = UDim2.new(0, 56, 0, 28)
-onof.Font = Enum.Font.SourceSans
-onof.Text = "fly"
-onof.TextColor3 = Color3.fromRGB(0, 0, 0)
-onof.TextSize = 14.000
-
-TextLabel.Parent = Frame
-TextLabel.BackgroundColor3 = Color3.fromRGB(242, 60, 255)
-TextLabel.Position = UDim2.new(0.469327301, 0, 0, 0)
-TextLabel.Size = UDim2.new(0, 100, 0, 28)
-TextLabel.Font = Enum.Font.SourceSans
-TextLabel.Text = "Script hack bay"
-TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
-TextLabel.TextScaled = true
-TextLabel.TextSize = 14.000
-TextLabel.TextWrapped = true
-
-plus.Name = "plus"
-plus.Parent = Frame
-plus.BackgroundColor3 = Color3.fromRGB(133, 145, 255)
-plus.Position = UDim2.new(0.231578946, 0, 0, 0)
-plus.Size = UDim2.new(0, 45, 0, 28)
-plus.Font = Enum.Font.SourceSans
-plus.Text = "+"
-plus.TextColor3 = Color3.fromRGB(0, 0, 0)
-plus.TextScaled = true
-plus.TextSize = 14.000
-plus.TextWrapped = true
-
-speed.Name = "speed"
-speed.Parent = Frame
-speed.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
-speed.Position = UDim2.new(0.468421042, 0, 0.491228074, 0)
-speed.Size = UDim2.new(0, 44, 0, 28)
-speed.Font = Enum.Font.SourceSans
-speed.Text = "1"
-speed.TextColor3 = Color3.fromRGB(0, 0, 0)
-speed.TextScaled = true
-speed.TextSize = 14.000
-speed.TextWrapped = true
-
-mine.Name = "mine"
-mine.Parent = Frame
-mine.BackgroundColor3 = Color3.fromRGB(123, 255, 247)
-mine.Position = UDim2.new(0.231578946, 0, 0.491228074, 0)
-mine.Size = UDim2.new(0, 45, 0, 29)
-mine.Font = Enum.Font.SourceSans
-mine.Text = "-"
-mine.TextColor3 = Color3.fromRGB(0, 0, 0)
-mine.TextScaled = true
-mine.TextSize = 14.000
-mine.TextWrapped = true
-
-closebutton.Name = "Close"
-closebutton.Parent = main.Frame
-closebutton.BackgroundColor3 = Color3.fromRGB(225, 25, 0)
-closebutton.Font = "SourceSans"
-closebutton.Size = UDim2.new(0, 45, 0, 28)
-closebutton.Text = "X"
-closebutton.TextSize = 30
-closebutton.Position =  UDim2.new(0, 0, -1, 27)
-
-mini.Name = "minimize"
-mini.Parent = main.Frame
-mini.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
-mini.Font = "SourceSans"
-mini.Size = UDim2.new(0, 45, 0, 28)
-mini.Text = "-"
-mini.TextSize = 40
-mini.Position = UDim2.new(0, 44, -1, 27)
-
-mini2.Name = "minimize2"
-mini2.Parent = main.Frame
-mini2.BackgroundColor3 = Color3.fromRGB(192, 150, 230)
-mini2.Font = "SourceSans"
-mini2.Size = UDim2.new(0, 45, 0, 28)
-mini2.Text = "+"
-mini2.TextSize = 40
-mini2.Position = UDim2.new(0, 44, -1, 57)
-mini2.Visible = false
-
-speeds = 1
-
-local speaker = game:GetService("Players").LocalPlayer
-
-local chr = game.Players.LocalPlayer.Character
-local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-
-nowe = false
-
-game:GetService("StarterGui"):SetCore("SendNotification", { 
-	Title = "script hack bay";
-	Text = "BY Minhfansub";
-	Icon = "rbxthumb://type=Asset&id=5107182114&w=150&h=150"})
-Duration = 5;
-
-Frame.Active = true -- main = gui
-Frame.Draggable = true
-
-onof.MouseButton1Down:connect(function()
-
-	if nowe == true then
-		nowe = false
-
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,true)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,true)
-		speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-	else 
-		nowe = true
-
-
-
-		for i = 1, speeds do
-			spawn(function()
-
-				local hb = game:GetService("RunService").Heartbeat	
-
-
-				tpwalking = true
-				local chr = game.Players.LocalPlayer.Character
-				local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-				while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-					if hum.MoveDirection.Magnitude > 0 then
-						chr:TranslateBy(hum.MoveDirection)
-					end
-				end
-
-			end)
-		end
-		game.Players.LocalPlayer.Character.Animate.Disabled = true
-		local Char = game.Players.LocalPlayer.Character
-		local Hum = Char:FindFirstChildOfClass("Humanoid") or Char:FindFirstChildOfClass("AnimationController")
-
-		for i,v in next, Hum:GetPlayingAnimationTracks() do
-			v:AdjustSpeed(0)
-		end
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Climbing,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Flying,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.GettingUp,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Landed,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Running,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.RunningNoPhysics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.StrafingNoPhysics,false)
-		speaker.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Swimming,false)
-		speaker.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Swimming)
-	end
-
-
-
-
-	if game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid").RigType == Enum.HumanoidRigType.R6 then
-
-
-
-		local plr = game.Players.LocalPlayer
-		local torso = plr.Character.Torso
-		local flying = true
-		local deb = true
-		local ctrl = {f = 0, b = 0, l = 0, r = 0}
-		local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		local maxspeed = 50
-		local speed = 0
-
-
-		local bg = Instance.new("BodyGyro", torso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = torso.CFrame
-		local bv = Instance.new("BodyVelocity", torso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		if nowe == true then
-			plr.Character.Humanoid.PlatformStand = true
-		end
-		while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-			game:GetService("RunService").RenderStepped:Wait()
-
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5+(speed/maxspeed)
-				if speed > maxspeed then
-					speed = maxspeed
-				end
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
-			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0,0)
-			end
-			--	game.Players.LocalPlayer.Character.Animate.Disabled = true
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-		end
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = 0
-		bg:Destroy()
-		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = false
-		game.Players.LocalPlayer.Character.Animate.Disabled = false
-		tpwalking = false
-
-
-
-
-	else
-		local plr = game.Players.LocalPlayer
-		local UpperTorso = plr.Character.UpperTorso
-		local flying = true
-		local deb = true
-		local ctrl = {f = 0, b = 0, l = 0, r = 0}
-		local lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		local maxspeed = 50
-		local speed = 0
-
-
-		local bg = Instance.new("BodyGyro", UpperTorso)
-		bg.P = 9e4
-		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		bg.cframe = UpperTorso.CFrame
-		local bv = Instance.new("BodyVelocity", UpperTorso)
-		bv.velocity = Vector3.new(0,0.1,0)
-		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		if nowe == true then
-			plr.Character.Humanoid.PlatformStand = true
-		end
-		while nowe == true or game:GetService("Players").LocalPlayer.Character.Humanoid.Health == 0 do
-			wait()
-
-			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
-				speed = speed+.5+(speed/maxspeed)
-				if speed > maxspeed then
-					speed = maxspeed
-				end
-			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
-				speed = speed-1
-				if speed < 0 then
-					speed = 0
-				end
-			end
-			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
-			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
-				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
-			else
-				bv.velocity = Vector3.new(0,0,0)
-			end
-
-			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
-		end
-		ctrl = {f = 0, b = 0, l = 0, r = 0}
-		lastctrl = {f = 0, b = 0, l = 0, r = 0}
-		speed = 0
-		bg:Destroy()
-		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = false
-		game.Players.LocalPlayer.Character.Animate.Disabled = false
-		tpwalking = false
-
-
-
-	end
-
-
-
-
-
-end)
-
-local tis
-
-up.MouseButton1Down:connect(function()
-	tis = up.MouseEnter:connect(function()
-		while tis do
-			wait()
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,1,0)
-		end
-	end)
-end)
-
-up.MouseLeave:connect(function()
-	if tis then
-		tis:Disconnect()
-		tis = nil
-	end
-end)
-
-local dis
-
-down.MouseButton1Down:connect(function()
-	dis = down.MouseEnter:connect(function()
-		while dis do
-			wait()
-			game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,-1,0)
-		end
-	end)
-end)
-
-down.MouseLeave:connect(function()
-	if dis then
-		dis:Disconnect()
-		dis = nil
-	end
-end)
-
-
-game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
-	wait(0.7)
-	game.Players.LocalPlayer.Character.Humanoid.PlatformStand = false
-	game.Players.LocalPlayer.Character.Animate.Disabled = false
-
-end)
-
-
-plus.MouseButton1Down:connect(function()
-	speeds = speeds + 1
-	speed.Text = speeds
-	if nowe == true then
-
-
-		tpwalking = false
-		for i = 1, speeds do
-			spawn(function()
-
-				local hb = game:GetService("RunService").Heartbeat	
-
-
-				tpwalking = true
-				local chr = game.Players.LocalPlayer.Character
-				local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-				while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-					if hum.MoveDirection.Magnitude > 0 then
-						chr:TranslateBy(hum.MoveDirection)
-					end
-				end
-
-			end)
-		end
-	end
-end)
-mine.MouseButton1Down:connect(function()
-	if speeds == 1 then
-		speed.Text = 'cannot be less than 1'
-		wait(1)
-		speed.Text = speeds
-	else
-		speeds = speeds - 1
-		speed.Text = speeds
-		if nowe == true then
-			tpwalking = false
-			for i = 1, speeds do
-				spawn(function()
-
-					local hb = game:GetService("RunService").Heartbeat	
-
-
-					tpwalking = true
-					local chr = game.Players.LocalPlayer.Character
-					local hum = chr and chr:FindFirstChildWhichIsA("Humanoid")
-					while tpwalking and hb:Wait() and chr and hum and hum.Parent do
-						if hum.MoveDirection.Magnitude > 0 then
-							chr:TranslateBy(hum.MoveDirection)
-						end
-					end
-
-				end)
-			end
-		end
-	end
-end)
-
-closebutton.MouseButton1Click:Connect(function()
-	main:Destroy()
-end)
-
-mini.MouseButton1Click:Connect(function()
-	up.Visible = false
-	down.Visible = false
-	onof.Visible = false
-	plus.Visible = false
-	speed.Visible = false
-	mine.Visible = false
-	mini.Visible = false
-	mini2.Visible = true
-	main.Frame.BackgroundTransparency = 1
-	closebutton.Position =  UDim2.new(0, 0, -1, 57)
-end)
-
-mini2.MouseButton1Click:Connect(function()
-	up.Visible = true
-	down.Visible = true
-	onof.Visible = true
-	plus.Visible = true
-	speed.Visible = true
-	mine.Visible = true
-	mini.Visible = true
-	mini2.Visible = false
-	main.Frame.BackgroundTransparency = 0 
-	closebutton.Position =  UDim2.new(0, 0, -1, 27)
-
-
-end)
-
--- Bảng thông tin cá nhân hiển thị trong 10 giây rồi tự ẩn
-local infoGui = Instance.new("ScreenGui")
-local infoFrame = Instance.new("Frame")
-local infoText = Instance.new("TextLabel")
-
-infoGui.Name = "ThongTinAdmin"
-infoGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-infoGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-infoGui.ResetOnSpawn = false
-
-infoFrame.Parent = infoGui
-infoFrame.BackgroundColor3 = Color3.fromRGB(50, 200, 255)
-infoFrame.BorderColor3 = Color3.fromRGB(255, 255, 255)
-infoFrame.Position = UDim2.new(0.35, 0, 0.35, 0)
-infoFrame.Size = UDim2.new(0, 300, 0, 150)
-infoFrame.BackgroundTransparency = 0.1
-infoFrame.Active = true
-infoFrame.Draggable = true
-
-infoText.Parent = infoFrame
-infoText.Size = UDim2.new(1, 0, 1, 0)
-infoText.BackgroundTransparency = 1
-infoText.Font = Enum.Font.SourceSansBold
-infoText.TextColor3 = Color3.fromRGB(0, 0, 0)
-infoText.TextScaled = true
-infoText.Text = "THÔNG TIN ADMIN \n\nADMIN: MinhFansub\nPhiên bản: 1.0\nLiên hệ https://www.facebook.com/minh.fansub"
-infoText.TextWrapped = true
-
--- Tự động ẩn bảng sau 10 giây
-delay(10, function()
-	infoGui:Destroy()
-end)
-
-
--- 🌈 BẢNG THÔNG TIN HỆ THỐNG (CỰC ĐẸP)
-local systemGui = Instance.new("ScreenGui")
-local systemFrame = Instance.new("Frame")
-local gradient = Instance.new("UIGradient")
-local corner = Instance.new("UICorner")
-local shadow = Instance.new("ImageLabel")
-
-local header = Instance.new("TextLabel")
-local timeLabel = Instance.new("TextLabel")
-local pingLabel = Instance.new("TextLabel")
-local vnLabel = Instance.new("TextLabel")
-
-systemGui.Name = "ThongTinHeThong"
-systemGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-systemGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-systemGui.ResetOnSpawn = false
-
--- Khung chính
-systemFrame.Parent = systemGui
-systemFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-systemFrame.Position = UDim2.new(0.74, 0, 0.05, 0)
-systemFrame.Size = UDim2.new(0, 260, 0, 120)
-systemFrame.Active = true
-systemFrame.Draggable = true
-
--- Bo góc
-corner.CornerRadius = UDim.new(0, 15)
-corner.Parent = systemFrame
-
--- Đổ bóng ngoài
-shadow.Parent = systemFrame
-shadow.BackgroundTransparency = 1
-shadow.Position = UDim2.new(-0.1, 0, -0.1, 0)
-shadow.Size = UDim2.new(1.2, 0, 1.2, 0)
-shadow.ZIndex = 0
-shadow.Image = "rbxassetid://5554236805"
-shadow.ImageTransparency = 0.4
-
--- Hiệu ứng chuyển màu gradient
-gradient.Color = ColorSequence.new{
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 180)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 140, 255)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 220))
-}
-gradient.Rotation = 0
-gradient.Parent = systemFrame
-
--- Tiêu đề
-header.Parent = systemFrame
-header.BackgroundTransparency = 1
-header.TextColor3 = Color3.fromRGB(255, 255, 255)
-header.Font = Enum.Font.GothamBlack
-header.Text = "📡  BẢNG HỆ THỐNG"
-header.TextScaled = true
-header.Size = UDim2.new(1, 0, 0, 25)
-header.Position = UDim2.new(0, 0, 0, 2)
-header.TextStrokeTransparency = 0.8
-header.TextYAlignment = Enum.TextYAlignment.Center
-
--- Hàm tạo label đẹp
-local function makeLabel(parent, y, text)
-	local lbl = Instance.new("TextLabel")
-	lbl.Parent = parent
-	lbl.BackgroundTransparency = 1
-	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-	lbl.Font = Enum.Font.GothamSemibold
-	lbl.TextSize = 18
-	lbl.TextXAlignment = Enum.TextXAlignment.Left
-	lbl.Position = UDim2.new(0, 10, 0, y)
-	lbl.Size = UDim2.new(1, -20, 0, 25)
-	lbl.Text = text
-	lbl.TextStrokeTransparency = 0.8
-	return lbl
-end
-
-timeLabel = makeLabel(systemFrame, 35, "⏱ Thời gian máy chủ: 00:00:00")
-pingLabel = makeLabel(systemFrame, 65, "📶 Ping: 0 ms")
-vnLabel = makeLabel(systemFrame, 95, "🇻🇳 Giờ VN: --:--:--")
-
--- Gradient xoay liên tục (hiệu ứng cầu vồng)
-task.spawn(function()
-	while task.wait(0.05) do
-		gradient.Rotation = (gradient.Rotation + 1) % 360
-	end
-end)
-
--- Đồng hồ máy chủ và VN
-local startTime = tick()
-
-game:GetService("RunService").RenderStepped:Connect(function()
-	-- Tính thời gian đã chạy
-	local elapsed = math.floor(tick() - startTime)
-	local hours = math.floor(elapsed / 3600)
-	local minutes = math.floor((elapsed % 3600) / 60)
-	local seconds = elapsed % 60
-	timeLabel.Text = string.format("⏱ Thời gian máy chủ: %02d:%02d:%02d", hours, minutes, seconds)
-
-	-- Ping thực tế
-	local stats = game:GetService("Stats")
-	local pingValue = math.floor(stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-	pingLabel.Text = "📶 Ping: " .. pingValue .. " ms"
-
-	-- Giờ Việt Nam (GMT+7)
-	local utc = os.time()
-	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
-	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
-end)
-
--- 🌟 ESP HIỂN THỊ MÁU NGƯỜI CHƠI KHÁC + NÚT BẬT/TẮT 🌟
-
--- Tạo nút ESP trong menu
-local espButton = Instance.new("TextButton")
-espButton.Name = "espButton"
-espButton.Parent = Frame
-espButton.BackgroundColor3 = Color3.fromRGB(255, 125, 0)
-espButton.Position = UDim2.new(1.05, 0, 0, 0)
-espButton.Size = UDim2.new(0, 56, 0, 28)
-espButton.Font = Enum.Font.SourceSansBold
-espButton.Text = "ESP: OFF"
-espButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-espButton.TextSize = 14
-espButton.Visible = true
-
-local ESP_ENABLED = false
+local VALID_KEYS = { "MINHFANSUB2011", "HUYDEPZAI", "freescriptmfshrfs", "DAT999111" }
+local WEB_URL = "https://link4m.com/n5KlNGl1"
+local MAX_ATTEMPTS = 3
+
+-- KEY GUI (hiển thị trước)
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local ESP_Objects = {}
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
 
--- Hàm bật/tắt hiển thị ESP
-local function toggleESP(state)
-	ESP_ENABLED = state
-	if not ESP_ENABLED then
-		-- Xóa toàn bộ ESP hiện có
-		for _, v in pairs(ESP_Objects) do
-			if v and v.Parent then
-				v:Destroy()
-			end
-		end
-		ESP_Objects = {}
-		return
-	end
+local keyGui = Instance.new("ScreenGui")
+keyGui.Name = "KeyCheckGui"
+keyGui.ResetOnSpawn = false
+keyGui.Parent = playerGui
+keyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
-	-- Hàm tạo ESP trên đầu người chơi
-	local function createESP(player)
-		if player == LocalPlayer then return end
-		player.CharacterAdded:Connect(function(character)
-			task.wait(1)
-			local head = character:FindFirstChild("Head")
-			local humanoid = character:FindFirstChildOfClass("Humanoid")
-			if head and humanoid then
-				local billboard = Instance.new("BillboardGui")
-				billboard.Name = "HealthESP"
-				billboard.Adornee = head
-				billboard.Size = UDim2.new(0, 200, 0, 50)
-				billboard.AlwaysOnTop = true
-				billboard.Parent = head
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 420, 0, 200)
+frame.Position = UDim2.new(0.5, -210, 0.4, -100)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BackgroundTransparency = 0.05
+frame.BorderSizePixel = 0
+frame.Parent = keyGui
 
-				local text = Instance.new("TextLabel", billboard)
-				text.Size = UDim2.new(1, 0, 1, 0)
-				text.BackgroundTransparency = 1
-				text.Font = Enum.Font.GothamBold
-				text.TextScaled = true
-				text.TextStrokeTransparency = 0.5
-				text.TextColor3 = Color3.fromRGB(255, 255, 255)
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 36)
+title.Position = UDim2.new(0, 0, 0, 8)
+title.BackgroundTransparency = 1
+title.Text = "Nhập Key để sử dụng script"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.TextColor3 = Color3.new(1,1,1)
+title.Parent = frame
 
-				ESP_Objects[#ESP_Objects + 1] = billboard
+local inputBox = Instance.new("TextBox")
+inputBox.Size = UDim2.new(0.9, 0, 0, 40)
+inputBox.Position = UDim2.new(0.05, 0, 0, 56)
+inputBox.PlaceholderText = "Nhập key..."
+inputBox.ClearTextOnFocus = false
+inputBox.Text = ""
+inputBox.Font = Enum.Font.SourceSans
+inputBox.TextSize = 18
+inputBox.Parent = frame
 
-				-- Cập nhật máu liên tục
-				RunService.RenderStepped:Connect(function()
-					if ESP_ENABLED and humanoid and humanoid.Health > 0 then
-						local hpPercent = humanoid.Health / humanoid.MaxHealth
-						local color = Color3.fromRGB(255 * (1 - hpPercent), 255 * hpPercent, 0)
-						text.TextColor3 = color
-						text.Text = string.format("%s\n❤️ %d / %d", player.Name, humanoid.Health, humanoid.MaxHealth)
-					elseif not ESP_ENABLED then
-						billboard.Enabled = false
-					else
-						text.Text = player.Name .. " 💀"
-						text.TextColor3 = Color3.fromRGB(255, 0, 0)
-					end
-				end)
-			end
-		end)
-	end
+local okBtn = Instance.new("TextButton")
+okBtn.Size = UDim2.new(0.4, 0, 0, 36)
+okBtn.Position = UDim2.new(0.05, 0, 0, 104)
+okBtn.Text = "Xác nhận"
+okBtn.Font = Enum.Font.SourceSansBold
+okBtn.TextSize = 18
+okBtn.Parent = frame
+okBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+okBtn.TextColor3 = Color3.new(1,1,1)
+okBtn.BorderSizePixel = 0
 
-	-- Áp dụng cho toàn bộ người chơi hiện tại
-	for _, plr in pairs(Players:GetPlayers()) do
-		createESP(plr)
-	end
+local cancelBtn = Instance.new("TextButton")
+cancelBtn.Size = UDim2.new(0.4, 0, 0, 36)
+cancelBtn.Position = UDim2.new(0.55, 0, 0, 104)
+cancelBtn.Text = "Thoát"
+cancelBtn.Font = Enum.Font.SourceSansBold
+cancelBtn.TextSize = 18
+cancelBtn.Parent = frame
+cancelBtn.BackgroundColor3 = Color3.fromRGB(180,40,40)
+cancelBtn.TextColor3 = Color3.new(1,1,1)
+cancelBtn.BorderSizePixel = 0
 
-	-- Khi có người mới vào
-	Players.PlayerAdded:Connect(function(plr)
-		createESP(plr)
-	end)
-end
+local webBtn = Instance.new("TextButton")
+webBtn.Size = UDim2.new(0.9, 0, 0, 36)
+webBtn.Position = UDim2.new(0.05, 0, 0, 150)
+webBtn.Text = "Vượt Link để lấy key"
+webBtn.Font = Enum.Font.SourceSansBold
+webBtn.TextSize = 18
+webBtn.Parent = frame
+webBtn.BackgroundColor3 = Color3.fromRGB(70, 200, 70)
+webBtn.TextColor3 = Color3.new(1,1,1)
+webBtn.BorderSizePixel = 0
 
--- Khi bấm nút ESP trong GUI
-espButton.MouseButton1Click:Connect(function()
-	ESP_ENABLED = not ESP_ENABLED
-	espButton.Text = ESP_ENABLED and "ESP: ON" or "ESP: OFF"
-	toggleESP(ESP_ENABLED)
+-- Nút Discord
+local DISCORD_URL = "https://discord.gg/k9QxqZcz2B" -- 🔗 Link Discord thật của bạn
+
+local discordBtn = Instance.new("TextButton")
+discordBtn.Size = UDim2.new(0.9, 0, 0, 36)
+discordBtn.Position = UDim2.new(0.05, 0, 0, 192)
+discordBtn.Text = "Tham gia Discord"
+discordBtn.Font = Enum.Font.SourceSansBold
+discordBtn.TextSize = 18
+discordBtn.Parent = frame
+discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- Màu xanh tím Discord
+discordBtn.TextColor3 = Color3.new(1,1,1)
+discordBtn.BorderSizePixel = 0
+
+-- Hiệu ứng hover
+discordBtn.MouseEnter:Connect(function()
+    discordBtn.BackgroundColor3 = Color3.fromRGB(114, 137, 218)
+end)
+discordBtn.MouseLeave:Connect(function()
+    discordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
 end)
 
+-- Khi bấm nút
+discordBtn.MouseButton1Click:Connect(function()
+    setclipboard(DISCORD_URL)
+    statusLabel.Text = "🔗 Link Discord đã được sao chép! Dán vào trình duyệt để mở."
+end)
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -20, 0, 24)
+statusLabel.Position = UDim2.new(0, 10, 0, 186)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = ""
+statusLabel.Font = Enum.Font.SourceSansItalic
+statusLabel.TextSize = 16
+statusLabel.TextColor3 = Color3.fromRGB(255,200,100)
+statusLabel.Parent = frame
+
+-- Xử lý nút truy cập trang web
+webBtn.MouseButton1Click:Connect(function()
+    setclipboard(WEB_URL)
+    statusLabel.Text = "Link đã được sao chép! Dán vào trình duyệt để mở."
+end)
+
+local attempts = 0
+
+-- Hàm kiểm tra key hợp lệ (nhiều key)
+local function isValidKey(input)
+    for _, key in ipairs(VALID_KEYS) do
+        if input == key then
+            return true
+        end
+    end
+    return false
+end
+
+-- === Chạy script chính ===
+local function startMain()
+    if keyGui then keyGui:Destroy() end
+    -- ⚙️ Gọi script bay chính (hoặc loadstring)
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/webminhfansub/scriptbay/refs/heads/main/.lua"))()
+end
+
+-- Kiểm tra key người dùng nhập
+local function tryKey()
+    local entered = tostring(inputBox.Text or "")
+    attempts += 1
+    if isValidKey(entered) then
+        statusLabel.Text = "✅ Key hợp lệ. Đang khởi tạo..."
+        wait(0.6)
+        startMain()
+    else
+        local left = MAX_ATTEMPTS - attempts
+        if left > 0 then
+            statusLabel.Text = "❌ Key sai. Còn "..left.." lần thử."
+        else
+            statusLabel.Text = "❌ Sai quá nhiều. Đã đóng GUI."
+            wait(1)
+            if keyGui then keyGui:Destroy() end
+        end
+    end
+end
+
+okBtn.MouseButton1Click:Connect(tryKey)
+inputBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then tryKey() end
+end)
+cancelBtn.MouseButton1Click:Connect(function()
+    if keyGui then keyGui:Destroy() end
+end)
