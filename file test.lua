@@ -1,3 +1,25 @@
+-- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (THEO TÊN)
+local blockedPlayers = {
+	["NguoiBiChan1"] = true,  -- thay bằng tên người chơi thật
+	["PlayerHacker"] = true,
+	["Troller123"] = true
+}
+
+local player = game.Players.LocalPlayer
+
+-- Kiểm tra xem người chơi có nằm trong danh sách cấm không
+if blockedPlayers[player.Name] then
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "🚫 TRUY CẬP BỊ TỪ CHỐI";
+		Text = "Xin lỗi " .. player.Name .. ", bạn không được phép dùng script này!";
+		Duration = 6
+	})
+	wait(2)
+	script:Destroy() -- Xóa toàn bộ script để họ không thể tiếp tục
+	return
+end
+
+
 local main = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local up = Instance.new("TextButton")
@@ -616,3 +638,4 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
+
