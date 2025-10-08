@@ -1,6 +1,6 @@
 -- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (VÀ KICK RA KHỎI GAME)
 local blockedPlayers = {
-	["xmzioh"] = true,  -- thay bằng tên người chơi bị cấm
+	["xmzioh"] = true,  -- 🔹 thay bằng tên người chơi bị cấm
 	["PlayerHacker"] = true,
 	["Troller123"] = true
 }
@@ -8,12 +8,10 @@ local blockedPlayers = {
 local player = game.Players.LocalPlayer
 
 if blockedPlayers[player.Name] then
-	-- Giao diện thông báo
 	local banGui = Instance.new("ScreenGui")
 	local frame = Instance.new("Frame")
 	local title = Instance.new("TextLabel")
 	local text = Instance.new("TextLabel")
-	local button = Instance.new("TextButton")
 
 	banGui.Name = "BanNotice"
 	banGui.Parent = player:WaitForChild("PlayerGui")
@@ -29,8 +27,8 @@ if blockedPlayers[player.Name] then
 	title.Size = UDim2.new(1, 0, 0, 40)
 	title.BackgroundTransparency = 1
 	title.Font = Enum.Font.GothamBold
-	title.Text = "Lỗi Khi Sử Dụng Script"
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.Text = "🚫 BẠN BỊ CẤM DÙNG SCRIPT NÀY"
+	title.TextColor3 = Color3.fromRGB(255, 70, 70)
 	title.TextScaled = true
 
 	text.Parent = frame
@@ -38,19 +36,19 @@ if blockedPlayers[player.Name] then
 	text.Position = UDim2.new(0, 10, 0, 45)
 	text.BackgroundTransparency = 1
 	text.Font = Enum.Font.Gotham
-	text.TextColor3 = Color3.fromRGB(220, 220, 220)
+	text.TextColor3 = Color3.fromRGB(230, 230, 230)
 	text.TextWrapped = true
 	text.TextScaled = true
 	text.Text = "Tài khoản này đã bị cấm sử dụng script này.\n\n" ..
-		"Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ ADMIN để được xem xét.\n\n(Mã Lỗi: 403)"
+		"Nếu bạn cho rằng đây là nhầm lẫn, hãy liên hệ ADMIN để được xem xét.\n\n(Mã lỗi: 403)"
 
-	button.Parent = frame
-	button.Size = UDim2.new(0, 15
+	wait(5)
+	player:Kick("🚫 Bạn bị cấm sử dụng script này!")
+	return
+end
 
-
-
-
-
+-- 🔽 Dưới đây là toàn bộ code gốc “script bay” của bạn
+----------------------------------------------------------
 local main = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local up = Instance.new("TextButton")
@@ -669,11 +667,4 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
-
-
-
-
-
-
-
 
