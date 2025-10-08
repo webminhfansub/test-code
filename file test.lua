@@ -1,25 +1,23 @@
 --[=[
-Safe "Script Aggregator Launcher" — Enhanced UI
+Safe "Script Aggregator Launcher" — Confirmation & Preview (Option 2)
 
-Notes:
-- This file remains SAFE: it only shows hub names/URLs and never executes remote code.
-- Improvements: dark glass UI, header with icon, search filter, categories, scrolling list, hover effects, thumbnails (placeholders), copy-to-clipboard and in-GUI URL preview.
-- Text is bilingual (Vietnamese + English) in labels.
+Behavior summary:
+- This launcher still NEVER executes remote code.
+- When a user clicks the "Copy/Run" button for a hub, a confirmation dialog appears showing the hub URL and short instructions.
+- If the user confirms "Run Anyway", the launcher will copy the URL to the clipboard and optionally display safe manual steps for running the code (inspect first, paste into an Approved ModuleScript, then require it).
+- This gives the UX of "click -> run" while forcing a manual inspection step and avoiding any automatic loadstring/fetch/execute.
 
-Usage: paste into a LocalScript inside StarterPlayerScripts or run in an environment where PlayerGui and setclipboard are allowed.
+Instructions:
+- Place this LocalScript in StarterPlayerScripts or where your UI runs.
+- Optionally create ReplicatedStorage/ApprovedModules to run internal modules (the launcher will not do that automatically).
 ]=]
 
 local Hubs = {
-    {name = "Blue-X", url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", tag = "General"},
-    {name = "Quantum-Hub", url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", tag = "General"},
-    {name = "Cokka-Hub", url = "https://raw.githubusercontent.com/UserDevEthical/Loadstring/main/CokkaHub.lua", tag = "Utility"},
-    {name = "Ldt-Hub", url = "https://raw.githubusercontent.com/thohihi312-coder/ldt-hub/refs/heads/main/main.lua.txt", tag = "General"},
-    {name = "Vector-Hub", url = "https://raw.githubusercontent.com/AAwful/Vector_Hub/0/v2", tag = "Combat"},
-    {name = "Than-Hub", url = "https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1", tag = "General"},
-    {name = "Xero-Hub", url = "https://raw.githubusercontent.com/Xero2409/XeroHub/refs/heads/main/main.lua", tag = "General"},
-    {name = "Volcano-Hub-V3", url = "https://raw.githubusercontent.com/indexeduu/BF-NewVer/refs/heads/main/V3New.lua", tag = "Utility"},
-    {name = "REDZ Beta", url = "https://raw.githubusercontent.com/tlredz/Scripts/refs/heads/main/main.luau", tag = "General"},
-    {name = "W-azure", url = "https://api.luarmor.net/files/v3/loaders/85e904ae1ff30824c1aa007fc7324f8f.lua", tag = "General"},
+    {name = "Blue-X", url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", tag = "General", moduleName = nil},
+    {name = "Quantum-Hub", url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", tag = "General", moduleName = nil},
+    {name = "Cokka-Hub", url = "https://raw.githubusercontent.com/UserDevEthical/Loadstring/main/CokkaHub.lua", tag = "Utility", moduleName = nil},
+    {name = "Ldt-Hub", url = "https://raw.githubusercontent.com/thohihi312-coder/ldt-hub/refs/heads/main/main.lua.txt", tag = "General", moduleName = nil},
+    {name = "Vector-Hub", url = "https://raw.githubusercontent.com/AAwful/Vector_Hub/0/v2", tag = "Combat", moduleName = nil},
 }
 
 -- Services
@@ -28,6 +26,7 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
 
 -- Cleanup old GUI
 if PlayerGui:FindFirstChild("SafeScriptLauncher") then
@@ -49,21 +48,8 @@ mainFrame.BackgroundTransparency = 0
 mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 20)
 mainFrame.BorderSizePixel = 0
 mainFrame.Parent = screenGui
-
 local mainCorner = Instance.new("UICorner", mainFrame)
 mainCorner.CornerRadius = UDim.new(0, 14)
-
--- Subtle shadow (frame behind)
-local shadow = Instance.new("Frame")
-shadow.Size = mainFrame.Size + UDim2.new(0,8,0,8)
-shadow.Position = mainFrame.Position - UDim2.new(0,4,0,4)
-shadow.BackgroundColor3 = Color3.fromRGB(0,0,0)
-shadow.BorderSizePixel = 0
-shadow.BackgroundTransparency = 0.7
-shadow.ZIndex = mainFrame.ZIndex - 1
-shadow.Parent = screenGui
-local shadowCorner = Instance.new("UICorner", shadow)
-shadowCorner.CornerRadius = UDim.new(0, 16)
 
 -- Header
 local header = Instance.new("Frame")
@@ -74,14 +60,6 @@ header.BorderSizePixel = 0
 header.Parent = mainFrame
 local headerCorner = Instance.new("UICorner", header)
 headerCorner.CornerRadius = UDim.new(0, 12)
-
-local logo = Instance.new("ImageLabel")
-logo.Name = "Logo"
-logo.Size = UDim2.new(0, 56, 0, 56)
-logo.Position = UDim2.new(0, 16, 0, 11)
-logo.BackgroundTransparency = 1
-logo.Image = "rbxassetid://0" -- placeholder (transparent). Replace with asset id if desired.
-logo.Parent = header
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -100, 0, 30)
@@ -99,10 +77,10 @@ subtitle.Size = UDim2.new(1, -100, 0, 20)
 subtitle.Position = UDim2.new(0, 84, 0, 36)
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
-title.TextSize = 14
+subtitle.TextSize = 14
 subtitle.TextColor3 = Color3.fromRGB(170,170,170)
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
-subtitle.Text = "An toàn: chỉ sao chép/hiển thị URL — Không thực thi mã từ xa"
+subtitle.Text = "An toàn: luôn xem trước URL và mã — Không tự động thực thi"
 subtitle.Parent = header
 
 -- Close button
@@ -118,12 +96,6 @@ closeBtn.TextColor3 = Color3.fromRGB(255,255,255)
 closeBtn.Parent = header
 local closeCorner = Instance.new("UICorner", closeBtn)
 closeCorner.CornerRadius = UDim.new(0,8)
-closeBtn.MouseEnter:Connect(function()
-    TweenService:Create(closeBtn, TweenInfo.new(0.12), {Size = UDim2.new(0, 40, 0, 40)}):Play()
-end)
-closeBtn.MouseLeave:Connect(function()
-    TweenService:Create(closeBtn, TweenInfo.new(0.12), {Size = UDim2.new(0, 36, 0, 36)}):Play()
-end)
 closeBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
@@ -143,35 +115,6 @@ searchBox.Parent = mainFrame
 local sbCorner = Instance.new("UICorner", searchBox)
 sbCorner.CornerRadius = UDim.new(0,8)
 
--- Tag filter dropdown (simple)
-local tagFrame = Instance.new("Frame")
-tagFrame.Size = UDim2.new(0.32, -24, 0, 36)
-tagFrame.Position = UDim2.new(0.6, 0, 0, 92)
-tagFrame.BackgroundColor3 = Color3.fromRGB(24,24,26)
-tagFrame.BorderSizePixel = 0
-tagFrame.Parent = mainFrame
-local tagCorner = Instance.new("UICorner", tagFrame)
-tagCorner.CornerRadius = UDim.new(0,8)
-local tagLabel = Instance.new("TextLabel")
-tagLabel.Size = UDim2.new(1, -36, 1, 0)
-tagLabel.Position = UDim2.new(0, 8, 0, 0)
-tagLabel.BackgroundTransparency = 1
-tagLabel.Font = Enum.Font.Gotham
-tagLabel.TextSize = 14
-tagLabel.TextColor3 = Color3.fromRGB(200,200,200)
-tagLabel.TextXAlignment = Enum.TextXAlignment.Left
-tagLabel.Text = "Tất cả / All"
-tagLabel.Parent = tagFrame
-local tagArrow = Instance.new("TextLabel")
-tagArrow.Size = UDim2.new(0, 24, 1, 0)
-tagArrow.Position = UDim2.new(1, -28, 0, 0)
-tagArrow.BackgroundTransparency = 1
-tagArrow.Font = Enum.Font.Gotham
-tagArrow.Text = "▾"
-tagArrow.TextColor3 = Color3.fromRGB(170,170,170)
-tagArrow.TextSize = 16
-tagArrow.Parent = tagFrame
-
 -- Body: scrolling list
 local bodyFrame = Instance.new("Frame")
 bodyFrame.Size = UDim2.new(1, -32, 0, 360)
@@ -189,13 +132,39 @@ local uiList = Instance.new("UIListLayout", scroll)
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
 uiList.Padding = UDim.new(0, 10)
 
-local function makeHubCard(hub)
+-- Helper to create a modal dialog
+local function createModal(titleText)
+    local modal = Instance.new("Frame")
+    modal.Size = UDim2.new(0, 560, 0, 220)
+    modal.Position = UDim2.new(0.5, -280, 0.5, -110)
+    modal.BackgroundColor3 = Color3.fromRGB(22,22,24)
+    modal.BorderSizePixel = 0
+    modal.Parent = screenGui
+    modal.ZIndex = 50
+    local mcorner = Instance.new("UICorner", modal)
+    mcorner.CornerRadius = UDim.new(0, 10)
+
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1, -28, 0, 28)
+    t.Position = UDim2.new(0, 14, 0, 12)
+    t.BackgroundTransparency = 1
+    t.Font = Enum.Font.GothamBold
+    t.TextSize = 16
+    t.TextColor3 = Color3.fromRGB(240,240,240)
+    t.TextXAlignment = Enum.TextXAlignment.Left
+    t.Text = titleText
+    t.Parent = modal
+
+    return modal
+end
+
+local function makeHubCard(hub, index)
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, -8, 0, 66)
     card.BackgroundColor3 = Color3.fromRGB(30,30,32)
     card.BorderSizePixel = 0
     card.Parent = scroll
-    card.LayoutOrder = 0
+    card.LayoutOrder = index
     local cardCorner = Instance.new("UICorner", card)
     cardCorner.CornerRadius = UDim.new(0,10)
 
@@ -248,14 +217,14 @@ local function makeHubCard(hub)
     urlPreview.Parent = card
 
     local copyBtn = Instance.new("TextButton")
-    copyBtn.Size = UDim2.new(0, 56, 0, 32)
-    copyBtn.Position = UDim2.new(1, -72, 0, 18)
+    copyBtn.Size = UDim2.new(0, 72, 0, 32)
+    copyBtn.Position = UDim2.new(1, -84, 0, 18)
     copyBtn.BackgroundColor3 = Color3.fromRGB(60,120,240)
     copyBtn.BorderSizePixel = 0
     copyBtn.Font = Enum.Font.GothamBold
     copyBtn.TextSize = 14
     copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
-    copyBtn.Text = "Copy"
+    copyBtn.Text = "Copy / Run"
     copyBtn.Parent = card
     local copyCorner = Instance.new("UICorner", copyBtn)
     copyCorner.CornerRadius = UDim.new(0,6)
@@ -268,71 +237,114 @@ local function makeHubCard(hub)
         TweenService:Create(card, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(30,30,32)}):Play()
     end)
 
+    -- On click: open confirmation modal with URL preview and instructions
     copyBtn.MouseButton1Click:Connect(function()
-        local ok, err = pcall(function() setclipboard(hub.url) end)
-        if ok then
-            -- small confirmation label
-            local confirm = Instance.new("TextLabel")
-            confirm.Size = UDim2.new(0, 160, 0, 28)
-            confirm.Position = UDim2.new(1, -180, 1, -44)
-            confirm.BackgroundTransparency = 0.15
-            confirm.BackgroundColor3 = Color3.fromRGB(20,20,20)
-            confirm.TextColor3 = Color3.fromRGB(220,220,220)
-            confirm.Text = "Đã sao chép: " .. hub.name
-            confirm.Font = Enum.Font.Gotham
-            confirm.TextSize = 14
-            confirm.Parent = mainFrame
-            local cc = Instance.new("UICorner", confirm)
-            cc.CornerRadius = UDim.new(0,8)
-            game:GetService("Debris"):AddItem(confirm, 2.8)
-        else
-            -- show url in a dialog (fallback)
-            local dialog = Instance.new("Frame")
-            dialog.Size = UDim2.new(0, 420, 0, 120)
-            dialog.Position = UDim2.new(0.5, -210, 0.5, -60)
-            dialog.BackgroundColor3 = Color3.fromRGB(22,22,24)
-            dialog.BorderSizePixel = 0
-            dialog.Parent = screenGui
-            local dCorner = Instance.new("UICorner", dialog)
-            dCorner.CornerRadius = UDim.new(0,10)
+        local modal = createModal("Xác nhận: Sao chép / Chạy (Preview)")
 
-            local dTitle = Instance.new("TextLabel")
-            dTitle.Size = UDim2.new(1, -24, 0, 28)
-            dTitle.Position = UDim2.new(0, 12, 0, 12)
-            dTitle.BackgroundTransparency = 1
-            dTitle.Font = Enum.Font.GothamBold
-            dTitle.TextSize = 16
-            dTitle.TextColor3 = Color3.fromRGB(240,240,240)
-            dTitle.Text = "URL (copy manually): " .. hub.name
-            dTitle.TextXAlignment = Enum.TextXAlignment.Left
-            dTitle.Parent = dialog
+        -- URL label
+        local urlLabel = Instance.new("TextLabel")
+        urlLabel.Size = UDim2.new(1, -28, 0, 18)
+        urlLabel.Position = UDim2.new(0, 14, 0, 48)
+        urlLabel.BackgroundTransparency = 1
+        urlLabel.Font = Enum.Font.Gotham
+        urlLabel.TextSize = 13
+        urlLabel.TextColor3 = Color3.fromRGB(200,200,200)
+        urlLabel.TextXAlignment = Enum.TextXAlignment.Left
+        urlLabel.Text = "URL:"
+        urlLabel.Parent = modal
 
-            local dBox = Instance.new("TextBox")
-            dBox.Size = UDim2.new(1, -24, 0, 54)
-            dBox.Position = UDim2.new(0, 12, 0, 44)
-            dBox.BackgroundColor3 = Color3.fromRGB(18,18,20)
-            dBox.TextColor3 = Color3.fromRGB(220,220,220)
-            dBox.Font = Enum.Font.Gotham
-            dBox.TextSize = 13
-            dBox.Text = hub.url
-            dBox.ClearTextOnFocus = false
-            dBox.TextXAlignment = Enum.TextXAlignment.Left
-            dBox.Parent = dialog
+        local urlBox = Instance.new("TextBox")
+        urlBox.Size = UDim2.new(1, -28, 0, 60)
+        urlBox.Position = UDim2.new(0, 14, 0, 68)
+        urlBox.BackgroundColor3 = Color3.fromRGB(18,18,20)
+        urlBox.TextColor3 = Color3.fromRGB(220,220,220)
+        urlBox.Font = Enum.Font.Gotham
+        urlBox.TextSize = 13
+        urlBox.Text = hub.url
+        urlBox.ClearTextOnFocus = false
+        urlBox.TextXAlignment = Enum.TextXAlignment.Left
+        urlBox.TextWrapped = true
+        urlBox.Parent = modal
 
-            local okBtn = Instance.new("TextButton")
-            okBtn.Size = UDim2.new(0, 84, 0, 30)
-            okBtn.Position = UDim2.new(1, -100, 1, -42)
-            okBtn.BackgroundColor3 = Color3.fromRGB(100,200,120)
-            okBtn.Text = "OK"
-            okBtn.Font = Enum.Font.GothamBold
-            okBtn.TextSize = 14
-            okBtn.Parent = dialog
-            local okCorner = Instance.new("UICorner", okBtn)
-            okCorner.CornerRadius = UDim.new(0,6)
-            okBtn.MouseButton1Click:Connect(function()
-                dialog:Destroy()
-            end)
-        end
+        -- Instruction text
+        local instr = Instance.new("TextLabel")
+        instr.Size = UDim2.new(1, -28, 0, 28)
+        instr.Position = UDim2.new(0, 14, 0, 136)
+        instr.BackgroundTransparency = 1
+        instr.Font = Enum.Font.Gotham
+        instr.TextSize = 12
+        instr.TextColor3 = Color3.fromRGB(170,170,170)
+        instr.Text = "HỆ THỐNG KHÔNG TỰ CHẠY: Hãy kiểm tra mã trước khi chạy. Copy URL hoặc nội dung và dán vào ModuleScript Approved để chạy an toàn."
+        instr.TextXAlignment = Enum.TextXAlignment.Left
+        instr.TextWrapped = true
+        instr.Parent = modal
+
+        -- Buttons: Run Anyway (copy) & Cancel
+        local runBtn = Instance.new("TextButton")
+        runBtn.Size = UDim2.new(0, 120, 0, 32)
+        runBtn.Position = UDim2.new(1, -140, 1, -44)
+        runBtn.BackgroundColor3 = Color3.fromRGB(60,160,90)
+        runBtn.Text = "Run Anyway (Copy)"
+        runBtn.Font = Enum.Font.GothamBold
+        runBtn.TextSize = 14
+        runBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        runBtn.Parent = modal
+        local runCorner = Instance.new("UICorner", runBtn)
+        runCorner.CornerRadius = UDim.new(0,6)
+
+        local cancelBtn = Instance.new("TextButton")
+        cancelBtn.Size = UDim2.new(0, 84, 0, 32)
+        cancelBtn.Position = UDim2.new(1, -260, 1, -44)
+        cancelBtn.BackgroundColor3 = Color3.fromRGB(200,80,80)
+        cancelBtn.Text = "Cancel"
+        cancelBtn.Font = Enum.Font.GothamBold
+        cancelBtn.TextSize = 14
+        cancelBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        cancelBtn.Parent = modal
+        local cCorner = Instance.new("UICorner", cancelBtn)
+        cCorner.CornerRadius = UDim.new(0,6)
+
+        cancelBtn.MouseButton1Click:Connect(function()
+            modal:Destroy()
+        end)
+
+        runBtn.MouseButton1Click:Connect(function()
+            -- SAFE ACTION: copy URL to clipboard and show step-by-step instructions
+            local ok = pcall(function() setclipboard(hub.url) end)
+            if ok then
+                local notif = Instance.new("TextLabel")
+                notif.Size = UDim2.new(0, 220, 0, 36)
+                notif.Position = UDim2.new(0.5, -110, 0.5, 120)
+                notif.BackgroundColor3 = Color3.fromRGB(20,20,20)
+                notif.TextColor3 = Color3.fromRGB(220,220,220)
+                notif.Font = Enum.Font.Gotham
+                notif.TextSize = 14
+                notif.Text = "URL đã được copy vào clipboard. Kiểm tra trước khi chạy."
+                notif.Parent = screenGui
+                local nc = Instance.new("UICorner", notif)
+                nc.CornerRadius = UDim.new(0,8)
+                Debris:AddItem(notif, 3)
+            else
+                -- fallback: show dialog with URL textbox (already visible) and instruction
+                local fallbackNote = Instance.new("TextLabel")
+                fallbackNote.Size = UDim2.new(0, 320, 0, 36)
+                fallbackNote.Position = UDim2.new(0.5, -160, 0.5, 120)
+                fallbackNote.BackgroundColor3 = Color3.fromRGB(20,20,20)
+                fallbackNote.TextColor3 = Color3.fromRGB(220,220,220)
+                fallbackNote.Font = Enum.Font.Gotham
+                fallbackNote.TextSize = 14
+                fallbackNote.Text = "Không thể copy tự động. Vui lòng sao chép thủ công từ ô URL."
+                fallbackNote.Parent = screenGui
+                local fc = Instance.new("UICorner", fallbackNote)
+                fc.CornerRadius = UDim.new(0,8)
+                Debris:AddItem(fallbackNote, 4)
+            end
+
+            -- Provide explicit next-step instructions inside the modal (replace or append)
+            instr.Text = "Bước an toàn: 1) Mở URL và kiểm tra code. 2) Tạo ModuleScript trong ReplicatedStorage/ApprovedModules. 3) Dán mã đã kiểm tra vào ModuleScript và lưu. 4) Dùng launcher hoặc require() nội bộ để chạy module."
+
+            -- Optionally keep modal open so user can copy/paste code manually; we won't auto-execute.
+        end)
     end)
 
     return card
@@ -340,7 +352,7 @@ end
 
 -- Populate list
 for i, hub in ipairs(Hubs) do
-    local c = makeHubCard(hub)
+    local c = makeHubCard(hub, i)
     c.LayoutOrder = i
 end
 
@@ -350,87 +362,29 @@ uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 -- Simple search/filter
-local function matches(hub, query, tag)
-    if query == "" then
-        return (tag == "All" or tag == hub.tag or tag == "")
-    end
+local function matches(hub, query)
+    if query == "" then return true end
     local q = string.lower(query)
-    if string.find(string.lower(hub.name), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
-    if string.find(string.lower(hub.tag or ""), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
-    if string.find(string.lower(hub.url), q, 1, true) then return (tag == "All" or tag == hub.tag or tag == "") end
+    if string.find(string.lower(hub.name), q, 1, true) then return true end
+    if string.find(string.lower(hub.tag or ""), q, 1, true) then return true end
+    if string.find(string.lower(hub.url), q, 1, true) then return true end
     return false
 end
 
-local currentTag = "All"
-local function refreshList(filterText)
-    filterText = filterText or ""
+searchBox:GetPropertyChangedSignal("Text"):Connect(function()
     for _, child in ipairs(scroll:GetChildren()) do
         if child:IsA("Frame") then child:Destroy() end
     end
     local order = 1
     for i, hub in ipairs(Hubs) do
-        if matches(hub, filterText, currentTag) then
-            local card = makeHubCard(hub)
+        if matches(hub, searchBox.Text) then
+            local card = makeHubCard(hub, order)
             card.LayoutOrder = order
             order = order + 1
         end
     end
-    uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Wait() -- ensure size update
+    uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Wait()
     scroll.CanvasSize = UDim2.new(0, 0, 0, uiList.AbsoluteContentSize.Y + 12)
-end
-
-searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-    refreshList(searchBox.Text)
 end)
 
--- Simple tag dropdown: toggles between All and first hub tags (very basic)
-local tags = {"All"}
-for _, h in ipairs(Hubs) do
-    if h.tag and not table.find(tags, h.tag) then table.insert(tags, h.tag) end
-end
-
-local tagOpen = false
-local dropdown
-local function openTagDropdown()
-    if tagOpen then return end
-    tagOpen = true
-    dropdown = Instance.new("Frame")
-    dropdown.Size = UDim2.new(0, 160, 0, math.min(30 * #tags, 180))
-    dropdown.Position = UDim2.new(0.68, 0, 0, 92)
-    dropdown.BackgroundColor3 = Color3.fromRGB(20,20,22)
-    dropdown.BorderSizePixel = 0
-    dropdown.Parent = mainFrame
-    local dcorner = Instance.new("UICorner", dropdown)
-    dcorner.CornerRadius = UDim.new(0,8)
-    local layout = Instance.new("UIListLayout", dropdown)
-    layout.Padding = UDim.new(0, 4)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    for i, t in ipairs(tags) do
-        local it = Instance.new("TextButton")
-        it.Size = UDim2.new(1, -12, 0, 28)
-        it.Position = UDim2.new(0, 6, 0, (i-1) * 32 + 6)
-        it.BackgroundTransparency = 1
-        it.Font = Enum.Font.Gotham
-        it.TextSize = 14
-        it.TextColor3 = Color3.fromRGB(220,220,220)
-        it.Text = t
-        it.Parent = dropdown
-        it.MouseButton1Click:Connect(function()
-            currentTag = t
-            tagLabel.Text = t .. ""
-            dropdown:Destroy()
-            tagOpen = false
-            refreshList(searchBox.Text)
-        end)
-    end
-end
-
-tagFrame.MouseButton1Click:Connect(openTagDropdown)
-tagFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then openTagDropdown() end
-end)
-
--- initial layout
-refreshList("")
-
-print("Enhanced SafeScriptLauncher loaded. UI updated with improved visuals.")
+print("SafeScriptLauncher (Preview modal) loaded. Clicking 'Copy / Run' opens a confirmation dialog instead of auto-executing.")
