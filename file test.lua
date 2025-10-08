@@ -1,119 +1,205 @@
--- aimbot_pro.lua
--- Phiên bản: Hiện đại (💎) - Aimbot lock (smooth) + LOS check (no wallhack)
--- Giữ ESP, Aimbot, FOV. KHÔNG có chức năng xuyên tường.
+-- aimbot_v2_deluxe.lua
+-- Deluxe Aimbot + ESP for Roblox (clean, commented, configurable)
+-- Features:
+-- 1) Smooth aim + hard lock option
+-- 2) Toggleable wall penetration (ignore walls)
+-- 3) ESP: Box, Health bar, Name, Distance, Snapline, Rainbow
+-- 4) Modern-ish GUI (simple native Gui elements) + draggable
+-- 5) FOV Circle (drawing) with show/hide and rainbow option
+-- 6) Readable, editable code (no obfuscation)
+--
+-- Controls (defaults):
+-- RightShift: Toggle GUI visibility
+-- MouseButton2 (right mouse) while Aimbot Enabled: Aim (hold)
+-- InsertKey "Insert": Toggle Aimbot Enabled
+-- InsertKey "Home": Toggle ESP Enabled
+-- You can change keys in Config section.
 
--- Services
+-- ====== CONFIG ======
+local Config = {
+    -- Aimbot
+    AimbotEnabled = false,        -- master toggle
+    AimKey = Enum.UserInputType.MouseButton2, -- hold to aim (MouseButton2 = right mouse)
+    ToggleAimbotKey = Enum.KeyCode.Insert,    -- press to toggle aimbot on/off
+    LockOn = true,                -- hard lock (true = strong lock, false = smooth follow)
+    Smoothness = 0.12,            -- smaller = snappier, 0.0 = instant
+    FOV = 120,                    -- degrees FOV for target acquisition
+    MaxDistance = 200,            -- max target distance in studs
+    IgnoreWalls = false,          -- if true, aimbot ignores raycast block (bypass walls)
+    TargetPart = "Head",          -- which part to aim at ("Head" or "HumanoidRootPart")
+    AimWhileMenuClosed = true,    -- only aim when menu hidden? (not used here)
+    LockStrength = 1.0,           -- multiplier for lock (1 full, <1 weaker)
+    -- ESP
+    ESPEnabled = true,
+    ESP_DrawBox = true,
+    ESP_DrawHealth = true,
+    ESP_DrawName = true,
+    ESP_DrawDistance = true,
+    ESP_Snapline = true,
+    ESP_SnaplinePosition = "Bottom", -- "Top" | "Bottom" | "Center"
+    ESP_Rainbow = false,
+    ESP_Font = Drawing.Fonts.UI,  -- choose font for Drawing's text
+    -- FOV Visual
+    ShowFOV = true,
+    FOV_Rainbow = false,
+    -- Visuals
+    BoxColor = Color3.fromRGB(255, 150, 0),
+    HealthGradient = {
+        Color3.fromRGB(0,255,0),
+        Color3.fromRGB(255,255,0),
+        Color3.fromRGB(255,0,0),
+    },
+    SnaplineColor = Color3.fromRGB(255,255,255),
+    -- Misc / GUI
+    ToggleGuiKey = Enum.KeyCode.RightShift,
+    GuiOpen = true,
+    -- Performance
+    MaxESPPlayers = 50, -- don't try to draw for more than this many players
+}
+
+-- ====== SERVICES & SHORTCUTS ======
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
-local Drawing = Drawing
 
--- ======= CONFIG =======
-local CONFIG = {
-    UI = {
-        title = "whoamhoam v3.0 PRO",
-        theme = {
-            bg = Color3.fromRGB(18, 18, 20),
-            panel = Color3.fromRGB(26, 28, 32),
-            accent = Color3.fromRGB(21, 255, 217),
-            text = Color3.fromRGB(235, 235, 235),
-            warn = Color3.fromRGB(255, 120, 120)
-        }
-    },
-    Aimbot = {
-        Enabled = false,
-        Keybind = Enum.KeyCode.LeftControl, -- hold to aim
-        FOV = 90,
-        MaxDistance = 300,
-        TargetPart = "Head",
-        ShowFOV = true,
-        Smoothness = 0.12, -- smaller = snappier (0 instant)
-        RequireLOS = true -- line-of-sight check (no wallhack)
-    },
-    ESP = {
-        Enabled = false,
-        Snaplines = true,
-        SnaplinePos = "Center", -- "Top"|"Center"|"Bottom"
-        Rainbow = false,
-        BoxColor = Color3.fromRGB(21,255,217),
-        DistanceColor = Color3.fromRGB(255,255,255),
-        HealthGradient = { Color3.fromRGB(0,255,0), Color3.fromRGB(255,255,0), Color3.fromRGB(255,0,0) }
-    }
-}
-
--- ======= UTIL =======
-local function isPlayerValid(plr)
-    if not plr or not plr.Character then return false end
-    local hum = plr.Character:FindFirstChildOfClass("Humanoid")
-    local head = plr.Character:FindFirstChild("Head")
-    if not hum or not head then return false end
-    if hum.Health <= 0 then return false end
-    return true
+-- Drawing safe constructor
+local function NewDrawing(kind)
+    local ok, obj = pcall(function() return Drawing.new(kind) end)
+    if ok then return obj end
+    return nil
 end
 
-local function lerp(a, b, t) return a + (b - a) * t end
-local function lerpCFrame(cf1, cf2, t)
-    local p = Vector3.new(lerp(cf1.Position.X, cf2.Position.X, t), lerp(cf1.Position.Y, cf2.Position.Y, t), lerp(cf1.Position.Z, cf2.Position.Z, t))
-    local r = cf1:lerp(cf2, t) -- use CFrame:lerp for rotation + position
-    return r
+-- ====== DATA STRUCTURES ======
+local ESPObjects = {} -- player -> draws
+local function MakeESPForPlayer(player)
+    local data = {}
+    data.Box = NewDrawing("Square")
+    data.Health = NewDrawing("Square")
+    data.Name = NewDrawing("Text")
+    data.Distance = NewDrawing("Text")
+    data.Snapline = NewDrawing("Line")
+    -- default properties
+    if data.Box then
+        data.Box.Visible = false
+        data.Box.Filled = false
+        data.Box.Thickness = 2
+    end
+    if data.Health then
+        data.Health.Visible = false
+        data.Health.Filled = true
+        data.Health.Thickness = 0
+    end
+    if data.Name then
+        data.Name.Visible = false
+        data.Name.Center = true
+        data.Name.Size = 16
+        data.Name.Font = Config.ESP_Font
+    end
+    if data.Distance then
+        data.Distance.Visible = false
+        data.Distance.Center = true
+        data.Distance.Size = 14
+        data.Distance.Font = Config.ESP_Font
+    end
+    if data.Snapline then
+        data.Snapline.Visible = false
+        data.Snapline.Thickness = 1
+    end
+    return data
 end
 
--- Raycast LOS check: true if unobstructed to target part
-local function hasLineOfSight(targetPart)
-    if not targetPart then return false end
-    local origin = Camera.CFrame.Position
-    local direction = (targetPart.Position - origin)
-    local params = RaycastParams.new()
-    params.FilterDescendantsInstances = {LocalPlayer.Character}
-    params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.IgnoreWater = true
-    local result = Workspace:Raycast(origin, direction, params)
+-- Create ESP objects for all players (except local)
+for _, p in ipairs(Players:GetPlayers()) do
+    if p ~= LocalPlayer then
+        ESPObjects[p] = MakeESPForPlayer(p)
+    end
+end
+Players.PlayerAdded:Connect(function(p)
+    if p ~= LocalPlayer then
+        ESPObjects[p] = MakeESPForPlayer(p)
+    end
+end)
+Players.PlayerRemoving:Connect(function(p)
+    if ESPObjects[p] then
+        for _, d in pairs(ESPObjects[p]) do
+            pcall(function() d:Remove() end)
+        end
+        ESPObjects[p] = nil
+    end
+end)
+
+-- ====== HELPERS ======
+local function isAlive(chara)
+    if not chara then return false end
+    local hum = chara:FindFirstChildOfClass("Humanoid")
+    return hum and hum.Health > 0
+end
+
+local function worldToScreen(pos)
+    local p, onScreen = Camera:WorldToViewportPoint(pos)
+    return Vector2.new(p.X, p.Y), onScreen, p.Z
+end
+
+local function lerp(a, b, t)
+    return a + (b - a) * t
+end
+
+local function clamp(val, a, b)
+    if val < a then return a end
+    if val > b then return b end
+    return val
+end
+
+-- Raycast helper for wall checking
+local function canSee(fromPos, toPos, ignoreCharacter)
+    if Config.IgnoreWalls then return true end
+    local direction = (toPos - fromPos)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+    rayParams.IgnoreWater = true
+    local result = Workspace:Raycast(fromPos, direction, rayParams)
     if not result then
-        -- nothing hit within direction (shouldn't happen often)
+        return true
+    else
+        -- If hit something part of target character, it's visible
+        if result.Instance and result.Instance:IsDescendantOf(ignoreCharacter) then
+            return true
+        end
         return false
     end
-    -- if the instance hit is descendant of the target player's character -> LOS true
-    return result.Instance and result.Instance:IsDescendantOf(targetPart.Parent)
 end
 
--- find target within FOV & distance; returns player
-local function getAimbotTarget()
+-- Angle between camera look vector and vector to target in degrees
+local function angleToTarget(targetPos)
+    local look = Camera.CFrame.LookVector
+    local dir = (targetPos - Camera.CFrame.Position).Unit
+    local dot = clamp(look:Dot(dir), -1, 1)
+    return math.deg(math.acos(dot))
+end
+
+-- Find closest target within FOV and range
+local function getClosestTarget()
     local best = nil
-    local bestScore = math.huge
-    local fov = CONFIG.Aimbot.FOV
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer and isPlayerValid(plr) then
-            local part = plr.Character:FindFirstChild(CONFIG.Aimbot.TargetPart)
+    local bestDist = math.huge
+    for _, pl in pairs(Players:GetPlayers()) do
+        if pl ~= LocalPlayer and pl.Character and isAlive(pl.Character) then
+            local part = pl.Character:FindFirstChild(Config.TargetPart) or pl.Character:FindFirstChild("HumanoidRootPart")
             if part then
-                local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local screenCenter = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
-                    local distScreen = (Vector2.new(pos.X, pos.Y) - screenCenter).Magnitude
-                    -- approximate angle by screen distance / half viewport
-                    local norm = (distScreen / (math.min(Camera.ViewportSize.X, Camera.ViewportSize.Y)/2)) * 180
-                    if norm <= fov/2 then
-                        local worldDist = (part.Position - Camera.CFrame.Position).Magnitude
-                        if worldDist <= CONFIG.Aimbot.MaxDistance then
-                            -- optional LOS check
-                            if CONFIG.Aimbot.RequireLOS then
-                                if not hasLineOfSight(part) then
-                                    -- can't see target directly; skip
-                                else
-                                    if worldDist < bestScore then
-                                        bestScore = worldDist
-                                        best = plr
-                                    end
-                                end
-                            else
-                                if worldDist < bestScore then
-                                    bestScore = worldDist
-                                    best = plr
-                                end
+                local mag = (part.Position - Camera.CFrame.Position).Magnitude
+                if mag <= Config.MaxDistance then
+                    local ang = angleToTarget(part.Position)
+                    if ang <= (Config.FOV/2) then
+                        if canSee(Camera.CFrame.Position, part.Position, pl.Character) then
+                            if mag < bestDist then
+                                bestDist = mag
+                                best = pl
                             end
                         end
                     end
@@ -124,332 +210,356 @@ local function getAimbotTarget()
     return best
 end
 
--- ======= GUI (simple modern) =======
-local screen = Instance.new("ScreenGui")
-screen.Name = "AimbotProGUI_v3"
-screen.Parent = CoreGui
-screen.ResetOnSpawn = false
+-- Aimbot movement: smoothly rotate camera towards target position
+local function aimAtPosition(targetPos, dt)
+    if not targetPos then return end
+    local cam = Camera
+    local currentCFrame = cam.CFrame
+    local desired = CFrame.new(currentCFrame.Position, targetPos)
+    if Config.LockOn then
+        if Config.Smoothness <= 0 then
+            cam.CFrame = desired
+        else
+            -- Interpolate between current look vector and desired look vector
+            local t = clamp(Config.Smoothness * (Config.LockStrength or 1), 0, 1)
+            -- Slerp using CFrame:Lerp (works for rotation)
+            local newCF = currentCFrame:Lerp(desired, t)
+            cam.CFrame = newCF
+        end
+    else
+        -- softer following: move camera look vector gradually
+        local t = clamp(Config.Smoothness, 0, 1)
+        cam.CFrame = currentCFrame:Lerp(desired, t * (Config.LockStrength or 1))
+    end
+end
 
-local main = Instance.new("Frame", screen)
-main.Size = UDim2.new(0, 420, 0, 520)
-main.Position = UDim2.new(0, 8, 0, 8)
-main.BackgroundColor3 = CONFIG.UI.theme.bg
-main.BorderSizePixel = 0
-main.Name = "Main"
+-- ====== DRAWING: FOV CIRCLE ======
+local fovCircle = NewDrawing("Circle")
+if fovCircle then
+    fovCircle.Visible = Config.ShowFOV
+    fovCircle.Radius = 100
+    fovCircle.Filled = false
+    fovCircle.Thickness = 2
+    fovCircle.NumSides = 90
+    fovCircle.Transparency = 1
+    fovCircle.Color = Color3.new(1,1,1)
+end
 
-local uiCorner = Instance.new("UICorner", main); uiCorner.CornerRadius = UDim.new(0,12)
+-- ====== UPDATE ESP EACH FRAME ======
+RunService.RenderStepped:Connect(function(dt)
+    -- Update FOV circle visuals
+    if fovCircle then
+        fovCircle.Visible = Config.ShowFOV
+        local scrSize = Camera.ViewportSize
+        fovCircle.Position = Vector2.new(scrSize.X/2, scrSize.Y/2)
+        -- map FOV degrees to radius proportionally to viewport height
+        -- (this is approximate and for visual guidance)
+        local radius = (Config.FOV/180) * (scrSize.Y/2)
+        fovCircle.Radius = radius
+        if Config.FOV_Rainbow then
+            fovCircle.Color = Color3.fromHSV((tick()%5)/5,1,1)
+        else
+            fovCircle.Color = Color3.new(1,1,1)
+        end
+    end
 
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, -24, 0, 48)
-title.Position = UDim2.new(0, 12, 0, 6)
+    -- Count players drawn (avoid too many)
+    local drawCount = 0
+    for player, draws in pairs(ESPObjects) do
+        if drawCount >= Config.MaxESPPlayers then
+            -- hide any remaining
+            if draws then
+                for _, d in pairs(draws) do
+                    if d then d.Visible = false end
+                end
+            end
+            continue
+        end
+
+        local char = player.Character
+        if not Config.ESPEnabled or not char or not isAlive(char) then
+            for _, d in pairs(draws) do
+                if d then d.Visible = false end
+            end
+        else
+            local head = char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+            if not head then
+                for _, d in pairs(draws) do if d then d.Visible = false end end
+            else
+                local screenPos, onScreen, z = worldToScreen(head.Position)
+                if not onScreen then
+                    for _, d in pairs(draws) do if d then d.Visible = false end end
+                else
+                    drawCount = drawCount + 1
+                    -- Box size based on distance
+                    local dist = (Camera.CFrame.Position - head.Position).Magnitude
+                    local scale = clamp(1500 / (dist + 1), 20, 400)
+                    -- Box (centered on head)
+                    if draws.Box then
+                        draws.Box.Size = Vector2.new(scale, scale * 1.6)
+                        draws.Box.Position = Vector2.new(screenPos.X - draws.Box.Size.X/2, screenPos.Y - draws.Box.Size.Y/2)
+                        draws.Box.Color = Config.BoxColor
+                        if Config.ESP_Rainbow then
+                            draws.Box.Color = Color3.fromHSV((tick()%5)/5, 1, 1)
+                        end
+                        draws.Box.Visible = Config.ESP_DrawBox
+                    end
+                    -- Health bar (vertical on left of box)
+                    if draws.Health then
+                        local hum = char:FindFirstChildOfClass("Humanoid")
+                        if hum and Config.ESP_DrawHealth then
+                            local hp = clamp(hum.Health / (hum.MaxHealth or 100), 0, 1)
+                            local hbHeight = draws.Box.Size.Y * hp
+                            draws.Health.Size = Vector2.new(6, hbHeight)
+                            draws.Health.Position = Vector2.new(draws.Box.Position.X - 10, draws.Box.Position.Y + (draws.Box.Size.Y - hbHeight))
+                            -- gradient by hp
+                            local col
+                            if hp > 0.66 then
+                                col = Config.HealthGradient[1]
+                            elseif hp > 0.33 then
+                                col = Config.HealthGradient[2]
+                            else
+                                col = Config.HealthGradient[3]
+                            end
+                            draws.Health.Color = col
+                            draws.Health.Visible = true
+                        else
+                            draws.Health.Visible = false
+                        end
+                    end
+                    -- Name text
+                    if draws.Name then
+                        draws.Name.Text = player.Name
+                        draws.Name.Position = Vector2.new(screenPos.X, draws.Box.Position.Y - 14)
+                        draws.Name.Color = Color3.new(1,1,1)
+                        draws.Name.Visible = Config.ESP_DrawName
+                    end
+                    -- Distance text
+                    if draws.Distance then
+                        draws.Distance.Text = string.format("%im", math.floor(dist))
+                        draws.Distance.Position = Vector2.new(screenPos.X, draws.Box.Position.Y + draws.Box.Size.Y + 6)
+                        draws.Distance.Color = Color3.new(1,1,1)
+                        draws.Distance.Visible = Config.ESP_DrawDistance
+                    end
+                    -- Snapline
+                    if draws.Snapline then
+                        local fromX, fromY
+                        if Config.ESP_SnaplinePosition == "Bottom" then
+                            fromX = Camera.ViewportSize.X/2
+                            fromY = Camera.ViewportSize.Y
+                        elseif Config.ESP_SnaplinePosition == "Top" then
+                            fromX = Camera.ViewportSize.X/2
+                            fromY = 0
+                        else
+                            fromX = Camera.ViewportSize.X/2
+                            fromY = Camera.ViewportSize.Y/2
+                        end
+                        draws.Snapline.From = Vector2.new(screenPos.X, screenPos.Y + draws.Box.Size.Y/3)
+                        draws.Snapline.To = Vector2.new(fromX, fromY)
+                        draws.Snapline.Color = Config.SnaplineColor
+                        if Config.ESP_Rainbow then
+                            draws.Snapline.Color = Color3.fromHSV((tick()%5)/5,1,1)
+                        end
+                        draws.Snapline.Visible = Config.ESP_Snapline
+                    end
+                end
+            end
+        end
+    end
+
+    -- Aimbot logic: track target while holding key
+    -- We will only aim when AimbotEnabled is true AND the AimKey is held.
+    -- We also allow ToggleAimbotKey to toggle the master AimbotEnabled.
+    -- Input detection handled elsewhere; here we check InputService state.
+    -- We'll use UserInputService:IsMouseButtonPressed for MouseButton2 or InputBegan state via a simple flag.
+end)
+
+-- ====== AIM LOOP (separate, to avoid blocking) ======
+-- We'll use RenderStepped to perform aiming when active and target exists
+local aiming = false -- whether hold key pressed
+local aimToggleActive = false -- for toggled on/off mode (we keep Config.AimbotEnabled as master)
+-- Track mouse buttons pressed for aim
+local mouseDown = false
+UserInputService.InputBegan:Connect(function(inp, gpe)
+    if gpe then return end
+    if inp.UserInputType == Config.AimKey then
+        mouseDown = true
+    elseif inp.KeyCode == Config.ToggleAimbotKey then
+        Config.AimbotEnabled = not Config.AimbotEnabled
+        -- feedback
+        print("[Aimbot] Toggled: ", Config.AimbotEnabled)
+    elseif inp.KeyCode == Config.ToggleGuiKey then
+        Config.GuiOpen = not Config.GuiOpen
+        pcall(function() mainGui.Enabled = Config.GuiOpen end)
+    elseif inp.KeyCode == Enum.KeyCode.Home then
+        Config.ESPEnabled = not Config.ESPEnabled
+        print("[ESP] Toggled:", Config.ESPEnabled)
+    end
+end)
+UserInputService.InputEnded:Connect(function(inp, gpe)
+    if inp.UserInputType == Config.AimKey then
+        mouseDown = false
+    end
+end)
+
+RunService.RenderStepped:Connect(function(dt)
+    -- Only aim when appropriate:
+    local shouldAim = Config.AimbotEnabled and (mouseDown or false)
+    if shouldAim then
+        local targetPlayer = getClosestTarget()
+        if targetPlayer and targetPlayer.Character and isAlive(targetPlayer.Character) then
+            local part = targetPlayer.Character:FindFirstChild(Config.TargetPart) or targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if part then
+                if Config.IgnoreWalls or canSee(Camera.CFrame.Position, part.Position, targetPlayer.Character) then
+                    aimAtPosition(part.Position, dt)
+                end
+            end
+        end
+    end
+end)
+
+-- ====== SIMPLE GUI: Basic toggles and sliders ======
+-- We'll build a small ScreenGui with some toggles. This is basic but functional and draggable.
+local StarterGui = game:GetService("StarterGui")
+
+local mainGui = Instance.new("ScreenGui")
+mainGui.Name = "DeluxeAimGui"
+mainGui.ResetOnSpawn = false
+mainGui.Enabled = Config.GuiOpen
+mainGui.Parent = CoreGui -- use CoreGui so it's always on top (be careful in some environments)
+
+local frame = Instance.new("Frame")
+frame.Name = "Main"
+frame.Size = UDim2.new(0, 420, 0, 380)
+frame.Position = UDim2.new(0, 20, 0, 80)
+frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+frame.BorderSizePixel = 0
+frame.Parent = mainGui
+frame.Active = true
+frame.Draggable = true
+
+local uicorner = Instance.new("UICorner", frame)
+uicorner.CornerRadius = UDim.new(0, 10)
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 36)
+title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundTransparency = 1
+title.Text = "Deluxe Aimbot v2"
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
-title.TextColor3 = CONFIG.UI.theme.accent
-title.Text = CONFIG.UI.title
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(240,240,240)
 title.TextXAlignment = Enum.TextXAlignment.Left
+title.Padding = Instance.new("UIPadding", title)
+title.Padding.PaddingLeft = UDim.new(0, 12)
 
-local closeBtn = Instance.new("TextButton", main)
-closeBtn.Size = UDim2.new(0, 32, 0, 28)
-closeBtn.Position = UDim2.new(1, -40, 0, 10)
-closeBtn.Text = "X"
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 16
-closeBtn.BackgroundTransparency = 1
-closeBtn.TextColor3 = CONFIG.UI.theme.text
+local function makeToggle(parent, labelText, getFunc, setFunc, y)
+    local lbl = Instance.new("TextLabel", parent)
+    lbl.Size = UDim2.new(0, 220, 0, 28)
+    lbl.Position = UDim2.new(0, 12, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = labelText
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 16
+    lbl.TextColor3 = Color3.fromRGB(220,220,220)
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
 
-closeBtn.MouseButton1Click:Connect(function() screen:Destroy() end)
-
--- Left controls
-local left = Instance.new("Frame", main)
-left.Size = UDim2.new(0, 270, 1, -70)
-left.Position = UDim2.new(0, 12, 0, 64)
-left.BackgroundTransparency = 1
-
-local function newButton(text, y)
-    local b = Instance.new("TextButton", left)
-    b.Size = UDim2.new(1, 0, 0, 36)
-    b.Position = UDim2.new(0, 0, 0, y)
-    b.BackgroundColor3 = CONFIG.UI.theme.panel
-    b.Font = Enum.Font.GothamBold
-    b.TextSize = 14
-    b.Text = text
-    b.TextColor3 = CONFIG.UI.theme.text
-    local c = Instance.new("UICorner", b); c.CornerRadius = UDim.new(0,6)
-    return b
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0, 60, 0, 24)
+    btn.Position = UDim2.new(1, -72, 0, y+2)
+    btn.BackgroundColor3 = getFunc() and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50)
+    btn.Text = getFunc() and "ON" or "OFF"
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 14
+    btn.TextColor3 = Color3.fromRGB(20,20,20)
+    btn.MouseButton1Click:Connect(function()
+        setFunc(not getFunc())
+        btn.BackgroundColor3 = getFunc() and Color3.fromRGB(50,200,50) or Color3.fromRGB(200,50,50)
+        btn.Text = getFunc() and "ON" or "OFF"
+    end)
+    return {Label = lbl, Button = btn}
 end
 
-local y = 0
-local espBtn = newButton("ESP: OFF", y); y = y + 46
-local snapBtn = newButton("Snaplines: OFF", y); y = y + 46
-local rainbowBtn = newButton("Rainbow: OFF", y); y = y + 46
-local aimBtn = newButton("Aimbot: OFF", y); y = y + 46
+-- Rows
+local y = 46
+local toggles = {}
+table.insert(toggles, makeToggle(frame, "Aimbot", function() return Config.AimbotEnabled end, function(v) Config.AimbotEnabled = v end, y)); y = y + 36
+table.insert(toggles, makeToggle(frame, "ESP", function() return Config.ESPEnabled end, function(v) Config.ESPEnabled = v end, y)); y = y + 36
+table.insert(toggles, makeToggle(frame, "Ignore Walls (Penetration)", function() return Config.IgnoreWalls end, function(v) Config.IgnoreWalls = v end, y)); y = y + 36
+table.insert(toggles, makeToggle(frame, "Lock-On (Hard)", function() return Config.LockOn end, function(v) Config.LockOn = v end, y)); y = y + 36
+table.insert(toggles, makeToggle(frame, "ESP Rainbow", function() return Config.ESP_Rainbow end, function(v) Config.ESP_Rainbow = v end, y)); y = y + 36
+table.insert(toggles, makeToggle(frame, "Show FOV", function() return Config.ShowFOV end, function(v) Config.ShowFOV = v end, y)); y = y + 36
 
--- FOV & distance & smoothness
-local function newLabel(text, ypos)
-    local l = Instance.new("TextLabel", left)
-    l.Size = UDim2.new(0.5, -6, 0, 18)
-    l.Position = UDim2.new(0, 0, 0, ypos)
-    l.BackgroundTransparency = 1
-    l.Font = Enum.Font.Gotham
-    l.TextSize = 12
-    l.TextColor3 = CONFIG.UI.theme.text
-    l.Text = text
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    return l
-end
+-- Slider helper (simple)
+local function makeNumberEntry(parent, labelText, getFunc, setFunc, y)
+    local lbl = Instance.new("TextLabel", parent)
+    lbl.Size = UDim2.new(0, 150, 0, 24)
+    lbl.Position = UDim2.new(0, 12, 0, y)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = labelText
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 14
+    lbl.TextColor3 = Color3.fromRGB(220,220,220)
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
 
-local fovLabel = newLabel("FOV:", y); local fovBox = Instance.new("TextBox", left)
-fovBox.Position = UDim2.new(0.5, 6, 0, y); fovBox.Size = UDim2.new(0.5, -6, 0, 22)
-fovBox.BackgroundColor3 = CONFIG.UI.theme.panel; fovBox.Text = tostring(CONFIG.Aimbot.FOV); fovBox.ClearTextOnFocus = false; fovBox.Font = Enum.Font.Gotham; fovBox.TextSize = 14; y = y + 32
-
-local distLabel = newLabel("Max Distance:", y); local distBox = Instance.new("TextBox", left)
-distBox.Position = UDim2.new(0.5, 6, 0, y); distBox.Size = UDim2.new(0.5, -6, 0, 22)
-distBox.BackgroundColor3 = CONFIG.UI.theme.panel; distBox.Text = tostring(CONFIG.Aimbot.MaxDistance); distBox.ClearTextOnFocus = false; distBox.Font = Enum.Font.Gotham; distBox.TextSize = 14; y = y + 32
-
-local smoothLabel = newLabel("Smoothness (0 instant):", y); local smoothBox = Instance.new("TextBox", left)
-smoothBox.Position = UDim2.new(0.5, 6, 0, y); smoothBox.Size = UDim2.new(0.5, -6, 0, 22)
-smoothBox.BackgroundColor3 = CONFIG.UI.theme.panel; smoothBox.Text = tostring(CONFIG.Aimbot.Smoothness); smoothBox.ClearTextOnFocus = false; smoothBox.Font = Enum.Font.Gotham; smoothBox.TextSize = 14; y = y + 40
-
--- Right info panel
-local right = Instance.new("Frame", main)
-right.Size = UDim2.new(1, -300, 1, -70)
-right.Position = UDim2.new(0, 294, 0, 64)
-right.BackgroundTransparency = 1
-
-local function newInfo(text, ypos)
-    local l = Instance.new("TextLabel", right)
-    l.Size = UDim2.new(1, 0, 0, 18)
-    l.Position = UDim2.new(0, 0, 0, ypos)
-    l.BackgroundTransparency = 1
-    l.Font = Enum.Font.Gotham
-    l.TextSize = 13
-    l.TextColor3 = CONFIG.UI.theme.text
-    l.Text = text
-    l.TextXAlignment = Enum.TextXAlignment.Left
-    return l
-end
-
-local infoY = 0
-local playerLabel = newInfo("User: " .. (LocalPlayer and LocalPlayer.Name or "Unknown"), infoY); infoY = infoY + 22
-local pingLabel = newInfo("Ping: ...", infoY); infoY = infoY + 22
-local fpsLabel = newInfo("FPS: ...", infoY); infoY = infoY + 22
-local timeLabel = newInfo("Time (VN): ...", infoY); infoY = infoY + 22
-local statusLabel = newInfo("Status: Ready", infoY); infoY = infoY + 22
-
--- Dragging main
-local dragging, dragStart, startPos
-main.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = main.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
-    end
-end)
-main.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-        local delta = input.Position - dragStart
-        main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
-
--- Button interactions
-local function setBtnState(btn, state)
-    btn.Text = btn.Text:match("^[^:]+") .. ": " .. (state and "ON" or "OFF")
-    btn.BackgroundColor3 = state and CONFIG.UI.theme.accent or CONFIG.UI.theme.panel
-end
-
-espBtn.MouseButton1Click:Connect(function()
-    CONFIG.ESP.Enabled = not CONFIG.ESP.Enabled; setBtnState(espBtn, CONFIG.ESP.Enabled)
-end)
-snapBtn.MouseButton1Click:Connect(function()
-    CONFIG.ESP.Snaplines = not CONFIG.ESP.Snaplines; setBtnState(snapBtn, CONFIG.ESP.Snaplines)
-end)
-rainbowBtn.MouseButton1Click:Connect(function()
-    CONFIG.ESP.Rainbow = not CONFIG.ESP.Rainbow; setBtnState(rainbowBtn, CONFIG.ESP.Rainbow)
-end)
-aimBtn.MouseButton1Click:Connect(function()
-    CONFIG.Aimbot.Enabled = not CONFIG.Aimbot.Enabled; setBtnState(aimBtn, CONFIG.Aimbot.Enabled)
-end)
-
-fovBox.FocusLost:Connect(function(enter)
-    if enter then local v = tonumber(fovBox.Text); if v and v>0 then CONFIG.Aimbot.FOV = v else fovBox.Text = tostring(CONFIG.Aimbot.FOV) end end
-end)
-distBox.FocusLost:Connect(function(enter)
-    if enter then local v = tonumber(distBox.Text); if v and v>0 then CONFIG.Aimbot.MaxDistance = v else distBox.Text = tostring(CONFIG.Aimbot.MaxDistance) end end
-end)
-smoothBox.FocusLost:Connect(function(enter)
-    if enter then local v = tonumber(smoothBox.Text); if v and v>=0 then CONFIG.Aimbot.Smoothness = v else smoothBox.Text = tostring(CONFIG.Aimbot.Smoothness) end end
-end)
-
--- initial states
-setBtnState(espBtn, CONFIG.ESP.Enabled)
-setBtnState(snapBtn, CONFIG.ESP.Snaplines)
-setBtnState(rainbowBtn, CONFIG.ESP.Rainbow)
-setBtnState(aimBtn, CONFIG.Aimbot.Enabled)
-
--- ======= ESP (Drawing) =======
-local playersDrawing = {}
-
-local function createDrawing()
-    local t = {}
-    t.Box = Drawing.new("Square"); t.Box.Visible=false; t.Box.Filled=false; t.Box.Thickness=2
-    t.Health = Drawing.new("Square"); t.Health.Visible=false; t.Health.Filled=true
-    t.Distance = Drawing.new("Text"); t.Distance.Visible=false; t.Distance.Center=true; t.Distance.Size=14
-    t.Snap = Drawing.new("Line"); t.Snap.Visible=false; t.Snap.Thickness=1
-    return t
-end
-
-for _,plr in ipairs(Players:GetPlayers()) do
-    if plr ~= LocalPlayer then playersDrawing[plr] = createDrawing() end
-end
-Players.PlayerAdded:Connect(function(plr) if plr~=LocalPlayer then playersDrawing[plr] = createDrawing() end end)
-Players.PlayerRemoving:Connect(function(plr)
-    if playersDrawing[plr] then
-        for _,d in pairs(playersDrawing[plr]) do pcall(function() d:Remove() end) end
-        playersDrawing[plr] = nil
-    end
-end)
-
-local function colorLerp(a,b,t) return Color3.new(a.r+(b.r-a.r)*t, a.g+(b.g-a.g)*t, a.b+(b.b-a.b)*t) end
-
--- ======= Aimbot loop & Render =======
-local fpsCounter = 0
-do
-    local frames = 0; local last = tick()
-    RunService.RenderStepped:Connect(function()
-        frames = frames + 1
-        if tick()-last >= 1 then fpsCounter = frames; frames = 0; last = tick() end
+    local box = Instance.new("TextBox", parent)
+    box.Size = UDim2.new(0, 100, 0, 22)
+    box.Position = UDim2.new(1, -120, 0, y)
+    box.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    box.Text = tostring(getFunc())
+    box.ClearTextOnFocus = false
+    box.TextColor3 = Color3.fromRGB(220,220,220)
+    box.Font = Enum.Font.Gotham
+    box.TextSize = 14
+    box.FocusLost:Connect(function(enter)
+        if enter then
+            local n = tonumber(box.Text)
+            if n then
+                setFunc(n)
+                box.Text = tostring(getFunc())
+            else
+                box.Text = tostring(getFunc())
+            end
+        end
     end)
 end
 
--- FOV circle (Drawing)
-local fovCircle = Drawing.new("Circle")
-fovCircle.Visible = CONFIG.Aimbot.ShowFOV
-fovCircle.Thickness = 2
-fovCircle.NumSides = 100
-fovCircle.Filled = false
-fovCircle.Color = CONFIG.UI.theme.accent
+makeNumberEntry(frame, "FOV (deg)", function() return Config.FOV end, function(v) Config.FOV = clamp(v, 10, 360) end, y); y = y + 30
+makeNumberEntry(frame, "Max Distance", function() return Config.MaxDistance end, function(v) Config.MaxDistance = clamp(v, 10, 2000) end, y); y = y + 30
+makeNumberEntry(frame, "Smoothness (0-1)", function() return Config.Smoothness end, function(v) Config.Smoothness = clamp(v, 0, 1) end, y); y = y + 30
 
-RunService.RenderStepped:Connect(function(dt)
-    -- update info
-    pingLabel.Text = "Ping: " .. tostring(math.floor((pcall(function() local s=game:GetService("Stats"); if s and s.Network and s.Network:FindFirstChild("DataPing") then return s.Network.DataPing:GetValue() end end) or 0) or 0)) .. " ms"
-    fpsLabel.Text = "FPS: " .. tostring(fpsCounter)
-    timeLabel.Text = "Time (VN): " .. os.date("%d/%m/%Y %H:%M:%S", os.time() + 7*3600)
-    playerLabel.Text = "User: " .. (LocalPlayer and LocalPlayer.Name or "Unknown")
-    statusLabel.Text = "Status: " .. (CONFIG.Aimbot.Enabled and "Aimbot ON" or "Idle")
+-- Close / quick hints
+local hint = Instance.new("TextLabel", frame)
+hint.Size = UDim2.new(1, -20, 0, 48)
+hint.Position = UDim2.new(0, 10, 1, -58)
+hint.BackgroundTransparency = 1
+hint.Text = "Right-click to aim (hold). Insert toggles Aimbot. RightShift toggles GUI. Use Home to toggle ESP."
+hint.Font = Enum.Font.Gotham
+hint.TextSize = 12
+hint.TextColor3 = Color3.fromRGB(170,170,170)
+hint.TextWrapped = true
 
-    -- update FOV circle
-    fovCircle.Visible = CONFIG.Aimbot.ShowFOV
-    if fovCircle.Visible then
-        local radius = (CONFIG.Aimbot.FOV/2) * (Camera.ViewportSize.Y / 614)
-        fovCircle.Radius = radius
-        fovCircle.Position = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)
-        if CONFIG.ESP.Rainbow then
-            fovCircle.Color = Color3.fromHSV((tick()*0.2)%1, 1, 1)
-        else
-            fovCircle.Color = CONFIG.UI.theme.accent
-        end
-    end
-
-    -- ESP drawing per player
-    for plr, draws in pairs(playersDrawing) do
-        if not isPlayerValid(plr) or not CONFIG.ESP.Enabled then
-            for _,d in pairs(draws) do pcall(function() d.Visible = false end) end
-        else
-            local char = plr.Character
-            local head = char and char:FindFirstChild("Head")
-            local hum = char and char:FindFirstChildOfClass("Humanoid")
-            if head and hum then
-                local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                if not onScreen then
-                    for _,d in pairs(draws) do pcall(function() d.Visible=false end) end
-                else
-                    local worldDist = (head.Position - Camera.CFrame.Position).Magnitude
-                    local scale = math.clamp(1000/worldDist, 30, 220)
-                    draws.Box.Size = Vector2.new(scale, scale*1.4)
-                    draws.Box.Position = Vector2.new(pos.X - draws.Box.Size.X/2, pos.Y - draws.Box.Size.Y/2)
-                    if CONFIG.ESP.Rainbow then
-                        draws.Box.Color = Color3.fromHSV((tick()*0.2)%1,1,1)
-                    else
-                        draws.Box.Color = CONFIG.ESP.BoxColor
-                    end
-                    draws.Box.Visible = true
-
-                    -- health bar
-                    local ratio = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
-                    draws.Health.Size = Vector2.new(4, draws.Box.Size.Y * ratio)
-                    draws.Health.Position = Vector2.new(draws.Box.Position.X + draws.Box.Size.X + 6, draws.Box.Position.Y + draws.Box.Size.Y - draws.Health.Size.Y)
-                    -- gradient
-                    local idx = ratio * 2
-                    local floor = math.floor(idx)
-                    local frac = idx - floor
-                    local c1 = CONFIG.ESP.HealthGradient[math.max(1, math.min(3, floor+1))]
-                    local c2 = CONFIG.ESP.HealthGradient[math.max(1, math.min(3, floor+2))]
-                    draws.Health.Color = colorLerp(c1, c2, frac)
-                    draws.Health.Visible = true
-
-                    draws.Distance.Text = tostring(math.floor(worldDist)) .. "m"
-                    draws.Distance.Position = Vector2.new(pos.X, pos.Y + draws.Box.Size.Y/2 + 10)
-                    draws.Distance.Color = CONFIG.ESP.DistanceColor
-                    draws.Distance.Visible = true
-
-                    -- snapline
-                    if CONFIG.ESP.Snaplines then
-                        local fromY = (CONFIG.ESP.SnaplinePos == "Top" and 0) or (CONFIG.ESP.SnaplinePos == "Bottom" and Camera.ViewportSize.Y) or (Camera.ViewportSize.Y/2)
-                        draws.Snap.From = Vector2.new(pos.X, pos.Y + draws.Box.Size.Y/2)
-                        draws.Snap.To = Vector2.new(Camera.ViewportSize.X/2, fromY)
-                        if CONFIG.ESP.Rainbow then draws.Snap.Color = Color3.fromHSV((tick()*0.2)%1,1,1) else draws.Snap.Color = CONFIG.ESP.BoxColor end
-                        draws.Snap.Visible = true
-                    else
-                        draws.Snap.Visible = false
-                    end
-                end
-            else
-                for _,d in pairs(draws) do pcall(function() d.Visible=false end) end
+-- ====== CLEANUP on disable (optional) ======
+local function cleanup()
+    -- remove drawing
+    if fovCircle then pcall(function() fovCircle:Remove() end) end
+    for p, draws in pairs(ESPObjects) do
+        for _, d in pairs(draws) do
+            if d then
+                pcall(function() d:Remove() end)
             end
         end
     end
-
-    -- Aimbot: if enabled and key held, do smooth lock to best target (with LOS check)
-    if CONFIG.Aimbot.Enabled and UserInputService:IsKeyDown(CONFIG.Aimbot.Keybind) then
-        local target = getAimbotTarget()
-        if target and target.Character then
-            local part = target.Character:FindFirstChild(CONFIG.Aimbot.TargetPart)
-            if part then
-                -- compute desired CFrame (look at target part)
-                local desired = CFrame.new(Camera.CFrame.Position, part.Position)
-                local smooth = math.clamp(CONFIG.Aimbot.Smoothness, 0, 1)
-                if smooth <= 0 then
-                    Camera.CFrame = desired -- instant lock
-                else
-                    -- lerp using CFrame:lerp for rotation; but lerp factor must be small to be "ghim chặt"
-                    Camera.CFrame = Camera.CFrame:lerp(desired, math.clamp(1 - math.exp(-smooth*60*dt), 0, 1))
-                    -- the above approximates frame-rate independent smoothing
-                end
-            end
-        end
+    ESPObjects = {}
+    if mainGui then
+        pcall(function() mainGui:Destroy() end)
     end
-end)
+end
 
--- Hotkey to toggle UI
-UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        screen.Enabled = not screen.Enabled
-    end
-end)
+-- Optional: a command to disable and cleanup (type in output console)
+_G.DisableDeluxeAimbot = function()
+    print("[DeluxeAimbot] Disabling & cleaning up...")
+    cleanup()
+end
 
--- initial notification (best-effort)
-pcall(function()
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Aimbot PRO v3",
-        Text = "Loaded. RightShift = toggle UI. Hold " .. tostring(CONFIG.Aimbot.Keybind) .. " to aim.",
-        Duration = 4
-    })
-end)
-
-print("✅ aimbot_pro.lua v3 loaded — smooth lock with LOS check (no wallhack).")
+print("[DeluxeAimbot] Loaded. Use Insert to toggle Aimbot, Home to toggle ESP, RightShift to toggle GUI. Use Right Mouse Button to aim while Aimbot is enabled.")
