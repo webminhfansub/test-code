@@ -1,4 +1,3 @@
-
 -- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (VÀ KICK RA KHỎI GAME)
 local blockedPlayers = {
 	["candyx2747"] = true,  -- 🔹 thay bằng tên người chơi bị cấm
@@ -676,7 +675,7 @@ local espButton = Instance.new("TextButton")
 espButton.Name = "espButton"
 espButton.Parent = Frame
 espButton.BackgroundColor3 = Color3.fromRGB(255, 125, 0)
-espButton.Position = UDim2.new(0.75, 0, -1.5, 0)
+espButton.Position = UDim2.new(1.05, 0, 0, 0)
 espButton.Size = UDim2.new(0, 56, 0, 28)
 espButton.Font = Enum.Font.SourceSansBold
 espButton.Text = "ESP: OFF"
@@ -764,3 +763,4 @@ espButton.MouseButton1Click:Connect(function()
 	espButton.Text = ESP_ENABLED and "ESP: ON" or "ESP: OFF"
 	toggleESP(ESP_ENABLED)
 end)
+
