@@ -1,6 +1,6 @@
 -- 🔒 CHẶN NGƯỜI CHƠI VÀ HIỂN THỊ BẢNG CẤM ĐẸP KIỂU "LỖI KHI GIA NHẬP"
 local blockedPlayers = {
-	["NguoiBiChan1"] = true,
+	["xmzioh"] = true,
 	["PlayerHacker"] = true,
 	["Troller123"] = true
 }
@@ -686,6 +686,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
+
 
 
 
