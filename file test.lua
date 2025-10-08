@@ -14,7 +14,7 @@ keyGui.Parent = playerGui
 keyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 420, 0, 200)
+frame.Size = UDim2.new(0, 420, 0, 250)
 frame.Position = UDim2.new(0.5, -210, 0.4, -100)
 frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BackgroundTransparency = 0.05
@@ -164,3 +164,4 @@ end)
 cancelBtn.MouseButton1Click:Connect(function()
     if keyGui then keyGui:Destroy() end
 end)
+
