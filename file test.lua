@@ -1,6 +1,6 @@
 -- 🔒 CHẶN NGƯỜI CHƠI KHÔNG ĐƯỢC DÙNG SCRIPT (THEO TÊN)
 local blockedPlayers = {
-	["NguoiBiChan1"] = true,  -- thay bằng tên người chơi thật
+	["xmzioh"] = true,
 	["PlayerHacker"] = true,
 	["Troller123"] = true
 }
@@ -638,4 +638,5 @@ game:GetService("RunService").RenderStepped:Connect(function()
 	local vnTime = os.date("!%H:%M:%S - %d/%m/%Y", utc + 7 * 3600)
 	vnLabel.Text = "🇻🇳 Giờ VN: " .. vnTime
 end)
+
 
